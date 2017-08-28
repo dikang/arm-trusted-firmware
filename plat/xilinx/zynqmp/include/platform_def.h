@@ -41,11 +41,26 @@
 /* Size of cacheable stacks */
 #define PLATFORM_STACK_SIZE 0x440
 
+#define DK_DEF
+#ifdef DK_DEF
+#define HPSC_PWR_DOMAINS_AT_MAX_PWR_LVL 1
+#define HPSC_CLUSTER_COUNT 2
+#define HPSC_CLUSTER0_CORE_COUNT 4
+#define HPSC_CLUSTER1_CORE_COUNT 4
+
+#define PLATFORM_CORE_COUNT		(HPSC_CLUSTER0_CORE_COUNT + HPSC_CLUSTER1_CORE_COUNT)
+#define PLAT_NUM_POWER_DOMAINS		(HPSC_PWR_DOMAINS_AT_MAX_PWR_LVL + HPSC_CLUSTER_COUNT + PLAFORM_CORE_COUNT)
+#define PLAT_MAX_PWR_LVL		2
+#define PLAT_MAX_RET_STATE		1
+#define PLAT_MAX_OFF_STATE		2
+
+#else
 #define PLATFORM_CORE_COUNT		4
 #define PLAT_NUM_POWER_DOMAINS		5
 #define PLAT_MAX_PWR_LVL		1
 #define PLAT_MAX_RET_STATE		1
 #define PLAT_MAX_OFF_STATE		2
+#endif
 
 /*******************************************************************************
  * BL31 specific defines.
@@ -138,4 +153,7 @@
 
 #define PLAT_ARM_G0_IRQS
 
+#ifdef DK_DEF
+#undef DK_DEF
+#endif
 #endif /* __PLATFORM_DEF_H__ */

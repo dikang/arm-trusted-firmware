@@ -45,6 +45,8 @@
 #include "pm_ipi.h"
 #include "../zynqmp_def.h"
 
+#define DK
+
 #define IRQ_MAX		84
 #define NUM_GICD_ISENABLER	((IRQ_MAX >> 5) + 1)
 #define UNDEFINED_CPUID		(~0)
@@ -80,6 +82,28 @@ static const struct pm_proc const pm_procs_all[] = {
 		.pwrdn_mask = APU_3_PWRCTL_CPUPWRDWNREQ_MASK,
 		.ipi = &apu_ipi,
 	},
+#ifdef DK
+	{
+		.node_id = NODE_APU_4,
+		.pwrdn_mask = APU_4_PWRCTL_CPUPWRDWNREQ_MASK,
+		.ipi = &apu_ipi,
+	},
+	{
+		.node_id = NODE_APU_5,
+		.pwrdn_mask = APU_5_PWRCTL_CPUPWRDWNREQ_MASK,
+		.ipi = &apu_ipi,
+	},
+	{
+		.node_id = NODE_APU_6,
+		.pwrdn_mask = APU_6_PWRCTL_CPUPWRDWNREQ_MASK,
+		.ipi = &apu_ipi,
+	},
+	{
+		.node_id = NODE_APU_7,
+		.pwrdn_mask = APU_7_PWRCTL_CPUPWRDWNREQ_MASK,
+		.ipi = &apu_ipi,
+	},
+#endif
 };
 
 /* Interrupt to PM node ID map */
@@ -356,3 +380,7 @@ enum pm_ret_status pm_set_suspend_mode(uint32_t mode)
 	suspend_mode = mode;
 	return PM_RET_SUCCESS;
 }
+
+#ifdef DK
+#undef DK
+#endif

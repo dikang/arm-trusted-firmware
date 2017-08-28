@@ -40,6 +40,11 @@
  * WARN("Warning %s.\n", "message") -> WARNING: Warning message.
  */
 
+#ifdef LOG_LEVEL
+#undef LOG_LEVEL
+#define LOG_LEVEL 999 /* DK */
+#endif 
+
 #define LOG_LEVEL_NONE			0
 #define LOG_LEVEL_ERROR			10
 #define LOG_LEVEL_NOTICE		20

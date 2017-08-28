@@ -43,6 +43,11 @@
 
 uintptr_t zynqmp_sec_entry;
 
+#define DK
+#ifdef DK
+#define LOG_LEVEL 999
+#endif
+
 void zynqmp_cpu_standby(plat_local_state_t cpu_state)
 {
 	VERBOSE("%s: cpu_state: 0x%x\n", __func__, cpu_state);
@@ -58,12 +63,31 @@ static int zynqmp_nopmu_pwr_domain_on(u_register_t mpidr)
 
 	VERBOSE("%s: mpidr: 0x%lx\n", __func__, mpidr);
 
+#ifdef DK
+
+	VERBOSE("%s: mpidr: 0x%lx, cpu_id = %u\n", __func__, mpidr, cpu_id);
+	int t_cpu_id = 0;
+	if (cpu_id >= 0x100) {
+		t_cpu_id = cpu_id - 0x100;
+	} else if (cpu_id >= 4) {
+		t_cpu_id = cpu_id - 4;
+	} else
+		t_cpu_id = cpu_id;
+WARN("DK: zynqmp_nopmu_pwr_domain_on: start, cpu_id(%d), t_cpu_id(%d)\n", cpu_id, t_cpu_id);
+#endif
 	if (cpu_id == -1)
 		return PSCI_E_INTERN_FAIL;
 
+#ifdef DK
+	if (t_cpu_id == cpu_id) {
+#endif
 	/* program RVBAR */
-	mmio_write_32(APU_RVBAR_L_0 + (cpu_id << 3), zynqmp_sec_entry);
-	mmio_write_32(APU_RVBAR_H_0 + (cpu_id << 3), zynqmp_sec_entry >> 32);
+	mmio_write_32(APU_RVBAR_L_0 + (cpu_id << 3), zynqmp_sec_entry);	
+		// 0xFD5C0000 + 0x40 + (cpu_id << 3)
+		// 0xFD5C00{40, 48, 50, 58, 60, 68, 70, 78}
+	mmio_write_32(APU_RVBAR_H_0 + (cpu_id << 3), zynqmp_sec_entry >> 32); // 0xFD5C0000 + 0x44
+		// 0xFD5C0000 + 0x44 + (cpu_id << 3)
+		// 0xFD5C00{44, 4C, 54, 5C, 64, 6C, 74, 7C}
 
 	/* clear VINITHI */
 	r = mmio_read_32(APU_CONFIG_0);
@@ -72,12 +96,36 @@ static int zynqmp_nopmu_pwr_domain_on(u_register_t mpidr)
 
 	/* clear power down request */
 	r = mmio_read_32(APU_PWRCTL);
-	r &= ~(1 << cpu_id);
-	mmio_write_32(APU_PWRCTL, r);
+	r &= ~(1 << cpu_id);	/* ~(1 << cpu_id) =  */
+	mmio_write_32(APU_PWRCTL, r);	// FC5C0090 
 
+#ifdef DK
+	} else {
+	/* program RVBAR */
+	mmio_write_32(APU1_RVBAR_L_0 + (t_cpu_id << 3), zynqmp_sec_entry);	
+		// 0xFD5C1000 + 0x40 + (cpu_id << 3)
+		// 0xFD5C10{40, 48, 50, 58, 60, 68, 70, 78}
+	mmio_write_32(APU1_RVBAR_H_0 + (t_cpu_id << 3), zynqmp_sec_entry >> 32); // 0xFD5C0000 + 0x44
+		// 0xFD5C1000 + 0x44 + (cpu_id << 3)
+		// 0xFD5C10{44, 4C, 54, 5C, 64, 6C, 74, 7C}
+
+	/* clear VINITHI */
+	r = mmio_read_32(APU1_CONFIG_0);
+	r &= ~(1 << APU1_CONFIG_0_VINITHI_SHIFT << t_cpu_id);
+	mmio_write_32(APU1_CONFIG_0, r);
+
+	/* clear power down request */
+	r = mmio_read_32(APU1_PWRCTL);
+	r &= ~(1 << t_cpu_id);	/* ~(1 << cpu_id) =  */
+	mmio_write_32(APU1_PWRCTL, r);	// FC5C0090 
+	}
+	if (cpu_id >= 0x100) cpu_id = cpu_id - 0x100 + 4;
+#endif
 	/* power up island */
-	mmio_write_32(PMU_GLOBAL_REQ_PWRUP_EN, 1 << cpu_id);
+	mmio_write_32(PMU_GLOBAL_REQ_PWRUP_EN, 1 << cpu_id);	// DK: looks OK
+		// 0xFFD80118 <- 0x{1, 2, 4, 8, 10, 20, 40, 80}
 	mmio_write_32(PMU_GLOBAL_REQ_PWRUP_TRIG, 1 << cpu_id);
+		// 0xFFD80120 <- 0x{1, 2, 4, 8, 10, 20, 40, 80}	// DK: looks OK
 	/* FIXME: we should have a way to break out */
 	while (mmio_read_32(PMU_GLOBAL_REQ_PWRUP_STATUS) & (1 << cpu_id))
 		;
@@ -86,7 +134,9 @@ static int zynqmp_nopmu_pwr_domain_on(u_register_t mpidr)
 	r = mmio_read_32(CRF_APB_RST_FPD_APU);
 	r &= ~((CRF_APB_RST_FPD_APU_ACPU_PWRON_RESET |
 			CRF_APB_RST_FPD_APU_ACPU_RESET) << cpu_id);
-	mmio_write_32(CRF_APB_RST_FPD_APU, r);
+	mmio_write_32(CRF_APB_RST_FPD_APU, r);	// DK: looks OK
+		// 0xFD1A0104 <- ~(((1 << 10) | (1 << 0) << cpu_id)
+		// 0xFD1A0104 <- ~( 0x400 | (1 << 0) << cpu_id)
 
 	return PSCI_E_SUCCESS;
 }
@@ -161,6 +211,15 @@ static void zynqmp_nopmu_pwr_domain_suspend(const psci_power_state_t *target_sta
 		VERBOSE("%s: target_state->pwr_domain_state[%lu]=%x\n",
 			__func__, i, target_state->pwr_domain_state[i]);
 
+#ifdef DK
+	int t_cpu_id = 0;
+	if (cpu_id >= 0x100) t_cpu_id = cpu_id - 0x100;
+	else if (cpu_id >= 4) t_cpu_id = cpu_id - 4;
+	else t_cpu_id = cpu_id;
+WARN("DK: zynqmp_nopmu_pwr_domain_suspend: start, cpu_id(%d), t_cpu_id(%d)\n", cpu_id, t_cpu_id);
+
+	if (t_cpu_id == cpu_id) {
+#endif
 	/* set power down request */
 	r = mmio_read_32(APU_PWRCTL);
 	r |= (1 << cpu_id);
@@ -174,7 +233,23 @@ static void zynqmp_nopmu_pwr_domain_suspend(const psci_power_state_t *target_sta
 	r = mmio_read_32(APU_CONFIG_0);
 	r &= ~(1 << APU_CONFIG_0_VINITHI_SHIFT << cpu_id);
 	mmio_write_32(APU_CONFIG_0, r);
+#ifdef DK
+	} else {
+	/* set power down request */
+	r = mmio_read_32(APU1_PWRCTL);
+	r |= (1 << t_cpu_id);
+	mmio_write_32(APU1_PWRCTL, r);
 
+	/* program RVBAR */
+	mmio_write_32(APU1_RVBAR_L_0 + (t_cpu_id << 3), zynqmp_sec_entry);
+	mmio_write_32(APU1_RVBAR_H_0 + (t_cpu_id << 3), zynqmp_sec_entry >> 32);
+
+	/* clear VINITHI */
+	r = mmio_read_32(APU1_CONFIG_0);
+	r &= ~(1 << APU1_CONFIG_0_VINITHI_SHIFT << t_cpu_id);
+	mmio_write_32(APU1_CONFIG_0, r);
+	}
+#endif
 	/* enable power up on IRQ */
 	mmio_write_32(PMU_GLOBAL_REQ_PWRUP_EN, 1 << cpu_id);
 }
@@ -224,10 +299,27 @@ static void zynqmp_nopmu_pwr_domain_suspend_finish(const psci_power_state_t *tar
 	/* disable power up on IRQ */
 	mmio_write_32(PMU_GLOBAL_REQ_PWRUP_DIS, 1 << cpu_id);
 
+#ifdef DK
+	int t_cpu_id = 0;
+	if (cpu_id >= 0x100) t_cpu_id = cpu_id - 0x100;
+	else if (cpu_id >= 4) t_cpu_id = cpu_id - 4;
+	else t_cpu_id = cpu_id;
+WARN("DK: zynqmp_nopmu_pwr_domain_suspend_finish: start, cpu_id(%d), t_cpu_id(%d)\n", cpu_id, t_cpu_id);
+
+	if (t_cpu_id == cpu_id) {
+#endif
 	/* clear powerdown bit */
 	r = mmio_read_32(APU_PWRCTL);
 	r &= ~(1 << cpu_id);
 	mmio_write_32(APU_PWRCTL, r);
+#ifdef DK
+	} else {
+	/* clear powerdown bit */
+	r = mmio_read_32(APU1_PWRCTL);
+	r &= ~(1 << t_cpu_id);
+	mmio_write_32(APU1_PWRCTL, r);
+	}
+#endif
 }
 
 static void zynqmp_pwr_domain_suspend_finish(const psci_power_state_t *target_state)

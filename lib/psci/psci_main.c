@@ -39,6 +39,7 @@
 #include <string.h>
 #include "psci_private.h"
 
+#define DK
 /*******************************************************************************
  * PSCI frontend api for servicing SMCs. Described in the PSCI spec.
  ******************************************************************************/
@@ -50,13 +51,17 @@ int psci_cpu_on(u_register_t target_cpu,
 	int rc;
 	entry_point_info_t ep;
 
+	WARN("DK: psci_cpu_on(%lu): start\n", target_cpu);
 	/* Determine if the cpu exists of not */
 	rc = psci_validate_mpidr(target_cpu);
+	WARN("DK: psci_cpu_on(%lu): rc = %d\n", target_cpu, rc);
 	if (rc != PSCI_E_SUCCESS)
 		return PSCI_E_INVALID_PARAMS;
 
+	WARN("DK: psci_validate_entry_point: start\n");
 	/* Validate the entry point and get the entry_point_info */
 	rc = psci_validate_entry_point(&ep, entrypoint, context_id);
+	WARN("DK: psci_validate_entry_point: rc = %d\n", rc);
 	if (rc != PSCI_E_SUCCESS)
 		return rc;
 
@@ -64,7 +69,13 @@ int psci_cpu_on(u_register_t target_cpu,
 	 * To turn this cpu on, specify which power
 	 * levels need to be turned on
 	 */
+#ifdef DK
+	int xx = psci_cpu_on_start(target_cpu, &ep);
+	WARN("DK: psci_cpu_on_start: returns %d\n", xx);
+	return xx;
+#else
 	return psci_cpu_on_start(target_cpu, &ep);
+#endif
 }
 
 unsigned int psci_version(void)

@@ -82,6 +82,7 @@ int psci_cpu_on_start(u_register_t target_cpu,
 	assert(psci_plat_pm_ops->pwr_domain_on &&
 			psci_plat_pm_ops->pwr_domain_on_finish);
 
+	WARN("DK: psci_cpu_on_start: before psci_spin_lock_cpu, target_idx = %u\n", target_idx);
 	/* Protect against multiple CPUs trying to turn ON the same target CPU */
 	psci_spin_lock_cpu(target_idx);
 
@@ -89,7 +90,12 @@ int psci_cpu_on_start(u_register_t target_cpu,
 	 * Generic management: Ensure that the cpu is off to be
 	 * turned on.
 	 */
+	/* DK: psci_get_aff_info_state_by_idx -->
+		lib/el3_runtime/aarch64/cpu_data.S
+		_cpu_data_by_index
+	*/ 
 	rc = cpu_on_validate_state(psci_get_aff_info_state_by_idx(target_idx));
+	WARN("DK: psci_cpu_on_start: after cpu_on_validate_state, rc= %d\n", rc);
 	if (rc != PSCI_E_SUCCESS)
 		goto exit;
 
@@ -106,6 +112,7 @@ int psci_cpu_on_start(u_register_t target_cpu,
 	 * Flush aff_info_state as it will be accessed with caches
 	 * turned OFF.
 	 */
+	WARN("DK: psci_cpu_on_start: before psci_set_aff_info_state_by_idx\n");
 	psci_set_aff_info_state_by_idx(target_idx, AFF_STATE_ON_PENDING);
 	flush_cpu_data_by_index(target_idx, psci_svc_cpu_data.aff_info_state);
 
@@ -133,6 +140,7 @@ int psci_cpu_on_start(u_register_t target_cpu,
 	 * steps to power on.
 	 */
 	rc = psci_plat_pm_ops->pwr_domain_on(target_cpu);
+	WARN("DK: psci_cpu_on_start: after pwr_domain_on, rc = %d\n", rc);
 	assert(rc == PSCI_E_SUCCESS || rc == PSCI_E_INTERN_FAIL);
 
 	if (rc == PSCI_E_SUCCESS)
@@ -146,6 +154,7 @@ int psci_cpu_on_start(u_register_t target_cpu,
 
 exit:
 	psci_spin_unlock_cpu(target_idx);
+	WARN("DK: psci_cpu_on_start: return, rc = %d\n", rc);
 	return rc;
 }
 

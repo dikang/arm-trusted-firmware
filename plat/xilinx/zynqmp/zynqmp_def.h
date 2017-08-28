@@ -33,6 +33,8 @@
 
 #include <common_def.h>
 
+#define DK_DEF 
+
 #define ZYNQMP_CONSOLE_ID_cadence	1
 #define ZYNQMP_CONSOLE_ID_cadence0	1
 #define ZYNQMP_CONSOLE_ID_cadence1	2
@@ -64,7 +66,11 @@
 #define CRF_APB_RST_FPD_APU	(CRF_APB_BASE + 0X00000104)
 
 #define CRF_APB_RST_FPD_APU_ACPU_RESET		(1 << 0)
+#ifdef DK_DEF
+#define CRF_APB_RST_FPD_APU_ACPU_PWRON_RESET	(1 << 14)
+#else
 #define CRF_APB_RST_FPD_APU_ACPU_PWRON_RESET	(1 << 10)
+#endif
 
 /* CRL registers and bitfields */
 #define CRL_APB_BASE			0xFF5E0000
@@ -74,7 +80,11 @@
 
 #define CRL_APB_RPLL_CTRL_BYPASS	(1 << 3)
 
+#ifdef DK
+#define CRL_APB_RESET_CTRL_SOFT_RESET	(1 << 8)
+#else
 #define CRL_APB_RESET_CTRL_SOFT_RESET	(1 << 4)
+#endif
 
 #define CRL_APB_BOOT_MODE_MASK		(0xf << 0)
 #define ZYNQMP_BOOTMODE_JTAG		0
@@ -95,6 +105,19 @@
 #define APU_1_PWRCTL_CPUPWRDWNREQ_MASK		2
 #define APU_2_PWRCTL_CPUPWRDWNREQ_MASK		4
 #define APU_3_PWRCTL_CPUPWRDWNREQ_MASK		8
+#ifdef DK_DEF
+#define APU1_BASE		0xFD5C1000
+#define APU1_CONFIG_0		(APU1_BASE + 0x20)
+#define APU1_RVBAR_L_0		(APU1_BASE + 0x40)
+#define APU1_RVBAR_H_0		(APU1_BASE + 0x44)
+#define APU1_PWRCTL		(APU1_BASE + 0x90)
+
+#define APU1_CONFIG_0_VINITHI_SHIFT	8
+#define APU_4_PWRCTL_CPUPWRDWNREQ_MASK		1
+#define APU_5_PWRCTL_CPUPWRDWNREQ_MASK		2
+#define APU_6_PWRCTL_CPUPWRDWNREQ_MASK		4
+#define APU_7_PWRCTL_CPUPWRDWNREQ_MASK		8
+#endif
 
 /* PMU registers and bitfields */
 #define PMU_GLOBAL_BASE			0xFFD80000
@@ -202,4 +225,7 @@
 #define ACTLR_EL3_L2ACTLR_BIT	(1 << 6)
 #define ACTLR_EL3_CPUACTLR_BIT	(1 << 0)
 
+#ifdef DK_DEF
+#undef DK_DEF
+#endif
 #endif /* __ZYNQMP_DEF_H__ */

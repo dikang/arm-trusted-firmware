@@ -39,6 +39,8 @@
 #include <utils.h>
 #include <xlat_tables.h>
 
+#define DK
+
 #if LOG_LEVEL >= LOG_LEVEL_VERBOSE
 #define LVL0_SPACER ""
 #define LVL1_SPACER "  "
@@ -71,6 +73,8 @@ static mmap_region_t mmap[MAX_MMAP_REGIONS + 1];
 
 void print_mmap(void)
 {
+#ifdef DK
+#else
 #if LOG_LEVEL >= LOG_LEVEL_VERBOSE
 	debug_print("mmap:\n");
 	mmap_region_t *mm = mmap;
@@ -81,6 +85,7 @@ void print_mmap(void)
 		++mm;
 	};
 	debug_print("\n");
+#endif
 #endif
 }
 
@@ -253,12 +258,14 @@ static uint64_t mmap_desc(unsigned attr, unsigned long long addr_pa,
 			desc |= LOWER_ATTRS(ATTR_NON_CACHEABLE_INDEX | OSH);
 		}
 	}
-
+#ifdef DK
+#else
 	debug_print((mem_type == MT_MEMORY) ? "MEM" :
 		((mem_type == MT_NON_CACHEABLE) ? "NC" : "DEV"));
 	debug_print(attr & MT_RW ? "-RW" : "-RO");
 	debug_print(attr & MT_NS ? "-NS" : "-S");
 	debug_print(attr & MT_EXECUTE_NEVER ? "-XN" : "-EXEC");
+#endif
 	return desc;
 }
 
@@ -336,10 +343,11 @@ static mmap_region_t *init_xlation_table_inner(mmap_region_t *mm,
 			++mm;
 			continue;
 		}
-
+#ifdef DK
+#else
 		debug_print("%s VA:%p size:0x%llx ", get_level_spacer(level),
 			(void *)base_va, (unsigned long long)level_size);
-
+#endif
 		if (mm->base_va > base_va + level_size - 1) {
 			/* Next region is after this area. Nothing to map yet */
 			desc = INVALID_DESC;
