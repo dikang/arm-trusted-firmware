@@ -50,7 +50,9 @@ int psci_cpu_on(u_register_t target_cpu,
 {
 	int rc;
 	entry_point_info_t ep;
-
+#ifdef DK
+	if (target_cpu >= 0x100) target_cpu = target_cpu - 0x100 + 4;
+#endif
 	WARN("DK: psci_cpu_on(%lu): start\n", target_cpu);
 	/* Determine if the cpu exists of not */
 	rc = psci_validate_mpidr(target_cpu);
@@ -69,6 +71,15 @@ int psci_cpu_on(u_register_t target_cpu,
 	 * To turn this cpu on, specify which power
 	 * levels need to be turned on
 	 */
+#ifdef DK
+	int kk;
+	aff_info_state_t kk2[8];
+	for (kk = 0; kk < 8; kk++) {
+		kk2[kk] = psci_get_aff_info_state_by_idx(kk); 
+	}
+	WARN("DK: power state = (%d, %d, %d, %d, %d, %d, %d, %d)\n",
+		kk2[0], kk2[1], kk2[2], kk2[3], kk2[4], kk2[5], kk2[6], kk2[7]); 
+#endif
 #ifdef DK
 	int xx = psci_cpu_on_start(target_cpu, &ep);
 	WARN("DK: psci_cpu_on_start: returns %d\n", xx);
@@ -271,6 +282,9 @@ int psci_migrate(u_register_t target_cpu)
 {
 	int rc;
 	u_register_t resident_cpu_mpidr;
+#ifdef DK
+	if (target_cpu >= 0x100) target_cpu = target_cpu - 0x100 + 4;
+#endif
 
 	rc = psci_spd_migrate_info(&resident_cpu_mpidr);
 	if (rc != PSCI_TOS_UP_MIG_CAP)
@@ -324,6 +338,9 @@ int psci_node_hw_state(u_register_t target_cpu,
 		       unsigned int power_level)
 {
 	int rc;
+#ifdef DK
+	if (target_cpu >= 0x100) target_cpu = target_cpu - 0x100 + 4;
+#endif
 
 	/* Validate target_cpu */
 	rc = psci_validate_mpidr(target_cpu);
@@ -389,6 +406,7 @@ u_register_t psci_smc_handler(uint32_t smc_fid,
 			  void *handle,
 			  u_register_t flags)
 {
+	WARN("DK: psci_smc_handler: start: smc_fid(%u) \n", smc_fid);
 	if (is_caller_secure(flags))
 		return SMC_UNK;
 

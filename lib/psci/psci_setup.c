@@ -238,9 +238,11 @@ int psci_setup(const psci_lib_args_t *lib_args)
 	/* Populate the mpidr field of cpu node for this CPU */
 	psci_cpu_pd_nodes[plat_my_core_pos()].mpidr =
 		read_mpidr() & MPIDR_AFFINITY_MASK;
+WARN("DK: psci_setup : plat_my_core_pos() = %d)\n", plat_my_core_pos());
 
 	psci_init_req_local_pwr_states();
 
+WARN("DK: psci_setup : psci_init_req_local_pwr_states)\n");
 	/*
 	 * Set the requested and target state of this CPU and all the higher
 	 * power domain levels for this CPU to run.

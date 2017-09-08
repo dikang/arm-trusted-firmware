@@ -203,6 +203,9 @@ static enum pm_node_id irq_node_map[IRQ_MAX + 1] = {
  */
 static enum pm_node_id irq_to_pm_node(unsigned int irq)
 {
+#ifdef DK
+VERBOSE("%s: irq = %u\n", __func__, irq);
+#endif
 	assert(irq <= IRQ_MAX);
 	return irq_node_map[irq];
 }
@@ -321,6 +324,9 @@ void pm_client_suspend(const struct pm_proc *proc, unsigned int state)
 	if (state == PM_STATE_SUSPEND_TO_RAM)
 		pm_client_set_wakeup_sources();
 
+#ifdef DK
+VERBOSE("%s: proc->node_id= %d : mmio_write_32(APU_PWRCTL, mmio_read_32(APU_PWRCTL) | 0x%x \n", __func__, proc->node_id, proc->pwrdn_mask);
+#endif
 	/* Set powerdown request */
 	mmio_write_32(APU_PWRCTL, mmio_read_32(APU_PWRCTL) | proc->pwrdn_mask);
 
@@ -341,6 +347,9 @@ void pm_client_abort_suspend(void)
 
 	bakery_lock_get(&pm_client_secure_lock);
 
+#ifdef DK
+VERBOSE("%s: mmio_write_32(APU_PWRCTL, mmio_read_32(APU_PWRCTL) | 0x%x \n", __func__, ~primary_proc->pwrdn_mask);
+#endif
 	/* Clear powerdown request */
 	mmio_write_32(APU_PWRCTL,
 		 mmio_read_32(APU_PWRCTL) & ~primary_proc->pwrdn_mask);
@@ -367,6 +376,9 @@ void pm_client_wakeup(const struct pm_proc *proc)
 	uint32_t val = mmio_read_32(APU_PWRCTL);
 	val &= ~(proc->pwrdn_mask);
 	mmio_write_32(APU_PWRCTL, val);
+#ifdef DK
+VERBOSE("%s: cpu_id(%u):  mmio_write_32(APU_PWRCTL, 0x%x) \n", __func__, cpuid, val);
+#endif
 
 	bakery_lock_release(&pm_client_secure_lock);
 }

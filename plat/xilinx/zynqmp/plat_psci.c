@@ -147,16 +147,54 @@ static int zynqmp_pwr_domain_on(u_register_t mpidr)
 	const struct pm_proc *proc;
 
 	VERBOSE("%s: mpidr: 0x%lx\n", __func__, mpidr);
+#ifdef DK
+VERBOSE("%s: DK: cpu_id: 0x%x\n", __func__, cpu_id);
+if (cpu_id >= 0x100) cpu_id = cpu_id - 0x100 + 4;
+#endif
 
 	if (cpu_id == -1)
 		return PSCI_E_INTERN_FAIL;
 
+#ifdef DK
+	int kk;
+	aff_info_state_t kk2[8];
+	for (kk = 0; kk < 8; kk++) {
+		kk2[kk] = get_cpu_data_by_index(kk,psci_svc_cpu_data.aff_info_state); 
+	}
+	VERBOSE("%s: DK: before pm_get_proc\n", __func__);
+	VERBOSE("DK: power state = (%d, %d, %d, %d, %d, %d, %d, %d)\n",
+		kk2[0], kk2[1], kk2[2], kk2[3], kk2[4], kk2[5], kk2[6], kk2[7]); 
+#endif
 	proc = pm_get_proc(cpu_id);
 	/* Clear power down request */
+#ifdef DK
+VERBOSE("%s: DK: before pm_client_wakeup\n", __func__);
+	for (kk = 0; kk < 8; kk++) {
+		kk2[kk] = get_cpu_data_by_index(kk,psci_svc_cpu_data.aff_info_state); 
+	}
+	VERBOSE("DK: power state = (%d, %d, %d, %d, %d, %d, %d, %d)\n",
+		kk2[0], kk2[1], kk2[2], kk2[3], kk2[4], kk2[5], kk2[6], kk2[7]); 
+#endif
 	pm_client_wakeup(proc);
+#ifdef DK
+VERBOSE("%s: DK: before pm_req_wakeup\n", __func__);
+	for (kk = 0; kk < 8; kk++) {
+		kk2[kk] = get_cpu_data_by_index(kk,psci_svc_cpu_data.aff_info_state); 
+	}
+	VERBOSE("DK: power state = (%d, %d, %d, %d, %d, %d, %d, %d)\n",
+		kk2[0], kk2[1], kk2[2], kk2[3], kk2[4], kk2[5], kk2[6], kk2[7]); 
+#endif
 
 	/* Send request to PMU to wake up selected APU CPU core */
 	pm_req_wakeup(proc->node_id, 1, zynqmp_sec_entry, REQ_ACK_BLOCKING);
+#ifdef DK
+VERBOSE("%s: DK: after pm_req_wakeup\n", __func__);
+	for (kk = 0; kk < 8; kk++) {
+		kk2[kk] = get_cpu_data_by_index(kk,psci_svc_cpu_data.aff_info_state); 
+	}
+	VERBOSE("DK: power state = (%d, %d, %d, %d, %d, %d, %d, %d)\n",
+		kk2[0], kk2[1], kk2[2], kk2[3], kk2[4], kk2[5], kk2[6], kk2[7]); 
+#endif
 
 	return PSCI_E_SUCCESS;
 }
