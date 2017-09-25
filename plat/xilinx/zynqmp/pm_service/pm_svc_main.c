@@ -222,6 +222,8 @@ uint64_t pm_smc_handler(uint32_t smc_fid, uint64_t x1, uint64_t x2, uint64_t x3,
 	pm_arg[2] = (uint32_t)x2;
 	pm_arg[3] = (uint32_t)(x2 >> 32);
 
+// INFO("%s: start: PM API %d!\n", __func__, smc_fid & FUNCID_NUM_MASK);
+
 	switch (smc_fid & FUNCID_NUM_MASK) {
 	/* PM API Functions */
 	case PM_SELF_SUSPEND:

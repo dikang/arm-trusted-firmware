@@ -210,6 +210,7 @@ static enum pm_ret_status pm_ipi_send_common(const struct pm_proc *proc,
 	uintptr_t buffer_base = proc->ipi->buffer_base +
 					IPI_BUFFER_TARGET_PMU_OFFSET +
 					IPI_BUFFER_REQ_OFFSET;
+	/*DK 0xFF9905C0 */
 
 	/* Wait until previous interrupt is handled by PMU */
 	pm_ipi_wait(proc);
@@ -219,7 +220,7 @@ static enum pm_ret_status pm_ipi_send_common(const struct pm_proc *proc,
 		mmio_write_32(buffer_base + offset, payload[i]);
 		offset += PAYLOAD_ARG_SIZE;
 	}
-#ifdef DK
+#ifdef DK__
 	VERBOSE("pm_ipi_send_common: mmio_write_32, buffer_base(%lx): %x %x %x %x %x %x\n", 
 		buffer_base, payload[0], payload[1], payload[2], payload[3], payload[4], payload[5]);
 #endif
@@ -271,9 +272,6 @@ static enum pm_ret_status pm_ipi_buff_read(const struct pm_proc *proc,
 	uintptr_t buffer_base = proc->ipi->buffer_base +
 				IPI_BUFFER_TARGET_PMU_OFFSET +
 				IPI_BUFFER_RESP_OFFSET;
-#ifdef DK_DEBUG
-	VERBOSE("%s: start \n", __func__);
-#endif
 	pm_ipi_wait(proc);
 
 	/*
@@ -283,15 +281,15 @@ static enum pm_ret_status pm_ipi_buff_read(const struct pm_proc *proc,
 	 * buf-2: unused
 	 * buf-3: unused
 	 */
-#ifdef DK_DEBUG
-	VERBOSE("%s: count = %ld\n", __func__, count);
-#endif
 	for (i = 1; i <= count; i++) {
 		*value = mmio_read_32(buffer_base + (i * PAYLOAD_ARG_SIZE));
+#ifdef DK_DEBUG__
+	VERBOSE("%s: value[%ld] = 0x%x\n", __func__, i, *value);
+#endif
 		value++;
 	}
-#ifdef DK_DEBUG
-	VERBOSE("%s: read %lx \n", __func__, buffer_base);
+#ifdef DK_DEBUG__
+	VERBOSE("%s: count = %ld, read %lx \n", __func__, count, buffer_base);
 #endif
 
 	return mmio_read_32(buffer_base);
@@ -337,14 +335,14 @@ enum pm_ret_status pm_ipi_send_sync(const struct pm_proc *proc,
 				    unsigned int *value, size_t count)
 {
 	enum pm_ret_status ret;
-#ifdef DK_DEBUG
+#ifdef DK_DEBUG__
 	VERBOSE("pm_ipi_send_sync: start \n");
 #endif
 
 	bakery_lock_get(&pm_secure_lock);
 
 	ret = pm_ipi_send_common(proc, payload);
-#ifdef DK_DEBUG
+#ifdef DK_DEBUG__
 	VERBOSE("pm_ipi_send_sync: after pm_ipi_send_common: return(%d)\n", ret);
 #endif
 	if (ret != PM_RET_SUCCESS)
@@ -352,7 +350,7 @@ enum pm_ret_status pm_ipi_send_sync(const struct pm_proc *proc,
 
 	ret = pm_ipi_buff_read(proc, value, count);
 
-#ifdef DK_DEBUG
+#ifdef DK_DEBUG__
 	VERBOSE("pm_ipi_send_sync: after pm_ipi_buff_read: return(%d)\n", ret);
 #endif
 

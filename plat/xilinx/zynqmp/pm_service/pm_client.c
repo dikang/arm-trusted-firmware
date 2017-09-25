@@ -372,12 +372,28 @@ void pm_client_wakeup(const struct pm_proc *proc)
 
 	bakery_lock_get(&pm_client_secure_lock);
 
-	/* clear powerdown bit for affected cpu */
-	uint32_t val = mmio_read_32(APU_PWRCTL);
-	val &= ~(proc->pwrdn_mask);
-	mmio_write_32(APU_PWRCTL, val);
 #ifdef DK
+	if (cpuid >= 4) {
+		/* clear powerdown bit for affected cpu */
+		uint32_t val = mmio_read_32(APU1_PWRCTL);
+		val &= ~(proc->pwrdn_mask);
+		mmio_write_32(APU1_PWRCTL, val);
+#ifdef DK
+VERBOSE("%s: cpu_id(%u):  val = 0x%x, proc->pwrdn_mask = 0x%x \n", __func__, cpuid, val, proc->pwrdn_mask);
+VERBOSE("%s: cpu_id(%u):  mmio_write_32(APU1_PWRCTL, 0x%x) \n", __func__, cpuid, val);
+#endif
+	} else {
+		/* clear powerdown bit for affected cpu */
+		uint32_t val = mmio_read_32(APU_PWRCTL);
+		val &= ~(proc->pwrdn_mask);
+		mmio_write_32(APU_PWRCTL, val);
+#ifdef DK
+VERBOSE("%s: cpu_id(%u):  val = 0x%x, proc->pwrdn_mask = 0x%x \n", __func__, cpuid, val, proc->pwrdn_mask);
 VERBOSE("%s: cpu_id(%u):  mmio_write_32(APU_PWRCTL, 0x%x) \n", __func__, cpuid, val);
+#endif
+	}
+#else
+	mmio_write_32(APU_PWRCTL, val);
 #endif
 
 	bakery_lock_release(&pm_client_secure_lock);

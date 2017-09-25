@@ -146,9 +146,8 @@ static int zynqmp_pwr_domain_on(u_register_t mpidr)
 	unsigned int cpu_id = plat_core_pos_by_mpidr(mpidr);
 	const struct pm_proc *proc;
 
-	VERBOSE("%s: mpidr: 0x%lx\n", __func__, mpidr);
+	VERBOSE("%s: cpu_id(0x%x):  mpidr: 0x%lx\n", __func__, cpu_id, mpidr);
 #ifdef DK
-VERBOSE("%s: DK: cpu_id: 0x%x\n", __func__, cpu_id);
 if (cpu_id >= 0x100) cpu_id = cpu_id - 0x100 + 4;
 #endif
 
@@ -161,14 +160,12 @@ if (cpu_id >= 0x100) cpu_id = cpu_id - 0x100 + 4;
 	for (kk = 0; kk < 8; kk++) {
 		kk2[kk] = get_cpu_data_by_index(kk,psci_svc_cpu_data.aff_info_state); 
 	}
-	VERBOSE("%s: DK: before pm_get_proc\n", __func__);
 	VERBOSE("DK: power state = (%d, %d, %d, %d, %d, %d, %d, %d)\n",
 		kk2[0], kk2[1], kk2[2], kk2[3], kk2[4], kk2[5], kk2[6], kk2[7]); 
 #endif
 	proc = pm_get_proc(cpu_id);
 	/* Clear power down request */
 #ifdef DK
-VERBOSE("%s: DK: before pm_client_wakeup\n", __func__);
 	for (kk = 0; kk < 8; kk++) {
 		kk2[kk] = get_cpu_data_by_index(kk,psci_svc_cpu_data.aff_info_state); 
 	}
@@ -177,7 +174,6 @@ VERBOSE("%s: DK: before pm_client_wakeup\n", __func__);
 #endif
 	pm_client_wakeup(proc);
 #ifdef DK
-VERBOSE("%s: DK: before pm_req_wakeup\n", __func__);
 	for (kk = 0; kk < 8; kk++) {
 		kk2[kk] = get_cpu_data_by_index(kk,psci_svc_cpu_data.aff_info_state); 
 	}
@@ -188,7 +184,6 @@ VERBOSE("%s: DK: before pm_req_wakeup\n", __func__);
 	/* Send request to PMU to wake up selected APU CPU core */
 	pm_req_wakeup(proc->node_id, 1, zynqmp_sec_entry, REQ_ACK_BLOCKING);
 #ifdef DK
-VERBOSE("%s: DK: after pm_req_wakeup\n", __func__);
 	for (kk = 0; kk < 8; kk++) {
 		kk2[kk] = get_cpu_data_by_index(kk,psci_svc_cpu_data.aff_info_state); 
 	}
@@ -213,8 +208,14 @@ static void zynqmp_nopmu_pwr_domain_off(const psci_power_state_t *target_state)
 
 	/* set power down request */
 	r = mmio_read_32(APU_PWRCTL);
+#ifdef DK
+VERBOSE("%s: cpu_id = %d : mmio_read_32(APU_PWRCTL) : 0x%x \n", __func__, cpu_id, r);
+#endif
 	r |= (1 << cpu_id);
 	mmio_write_32(APU_PWRCTL, r);
+#ifdef DK
+VERBOSE("%s: cpu_id = %d : mmio_write_32(APU_PWRCTL, 0x%x) \n", __func__, cpu_id, r);
+#endif
 }
 
 static void zynqmp_pwr_domain_off(const psci_power_state_t *target_state)
@@ -246,8 +247,8 @@ static void zynqmp_nopmu_pwr_domain_suspend(const psci_power_state_t *target_sta
 	unsigned int cpu_id = plat_my_core_pos();
 
 	for (size_t i = 0; i <= PLAT_MAX_PWR_LVL; i++)
-		VERBOSE("%s: target_state->pwr_domain_state[%lu]=%x\n",
-			__func__, i, target_state->pwr_domain_state[i]);
+		VERBOSE("%s: cpu_id(0x%x): target_state->pwr_domain_state[%lu]=%x\n",
+			__func__, cpu_id, i, target_state->pwr_domain_state[i]);
 
 #ifdef DK
 	int t_cpu_id = 0;
@@ -299,8 +300,8 @@ static void zynqmp_pwr_domain_suspend(const psci_power_state_t *target_state)
 	const struct pm_proc *proc = pm_get_proc(cpu_id);
 
 	for (size_t i = 0; i <= PLAT_MAX_PWR_LVL; i++)
-		VERBOSE("%s: target_state->pwr_domain_state[%lu]=%x\n",
-			__func__, i, target_state->pwr_domain_state[i]);
+		VERBOSE("%s: cpu_id(0x%x): target_state->pwr_domain_state[%lu]=%x\n",
+			__func__, cpu_id, i, target_state->pwr_domain_state[i]);
 
 	state = target_state->pwr_domain_state[1] > PLAT_MAX_RET_STATE ?
 		PM_STATE_SUSPEND_TO_RAM : PM_STATE_CPU_IDLE;
@@ -331,8 +332,8 @@ static void zynqmp_nopmu_pwr_domain_suspend_finish(const psci_power_state_t *tar
 	unsigned int cpu_id = plat_my_core_pos();
 
 	for (size_t i = 0; i <= PLAT_MAX_PWR_LVL; i++)
-		VERBOSE("%s: target_state->pwr_domain_state[%lu]=%x\n",
-			__func__, i, target_state->pwr_domain_state[i]);
+		VERBOSE("%s: cpu_id(0x%x): target_state->pwr_domain_state[%lu]=%x\n",
+			__func__, cpu_id, i, target_state->pwr_domain_state[i]);
 
 	/* disable power up on IRQ */
 	mmio_write_32(PMU_GLOBAL_REQ_PWRUP_DIS, 1 << cpu_id);
@@ -366,8 +367,8 @@ static void zynqmp_pwr_domain_suspend_finish(const psci_power_state_t *target_st
 	const struct pm_proc *proc = pm_get_proc(cpu_id);
 
 	for (size_t i = 0; i <= PLAT_MAX_PWR_LVL; i++)
-		VERBOSE("%s: target_state->pwr_domain_state[%lu]=%x\n",
-			__func__, i, target_state->pwr_domain_state[i]);
+		VERBOSE("%s: cpu(%d): target_state->pwr_domain_state[%lu]=%x\n",
+			__func__, cpu_id, i, target_state->pwr_domain_state[i]);
 
 	/* Clear the APU power control register for this cpu */
 	pm_client_wakeup(proc);
@@ -375,9 +376,11 @@ static void zynqmp_pwr_domain_suspend_finish(const psci_power_state_t *target_st
 	/* enable coherency */
 	plat_arm_interconnect_enter_coherency();
 	/* APU was turned off */
-	if (target_state->pwr_domain_state[1] > PLAT_MAX_RET_STATE) {
+	if (target_state->pwr_domain_state[1] > PLAT_MAX_RET_STATE) {	/* > 1 */
+		VERBOSE("%s: cpu(%d): plat_arm_gic_init()\n", __func__, cpu_id);
 		plat_arm_gic_init();
 	} else {
+		VERBOSE("%s: cpu(%d): gicv2_cpuif_enable()\n", __func__, cpu_id);
 		gicv2_cpuif_enable();
 		gicv2_pcpu_distif_init();
 	}

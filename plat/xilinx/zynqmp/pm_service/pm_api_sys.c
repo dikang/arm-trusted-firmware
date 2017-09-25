@@ -187,13 +187,13 @@ VERBOSE("%s: DK: (ack = %d): before call pm_ipi_send \n", __func__, ack);
 
 	if (ack == REQ_ACK_BLOCKING) {
 #ifdef DK
-VERBOSE("%s: DK: call pm_ipi_send_sync\n", __func__);
+VERBOSE("%s: (ack == REQ_ACK_BLOCKING: call pm_ipi_send_sync\n", __func__);
 #endif
 		return pm_ipi_send_sync(primary_proc, payload, NULL, 0);
 	}
 	else {
 #ifdef DK
-VERBOSE("%s: DK: call pm_ipi_send\n", __func__);
+VERBOSE("%s: ack != REQ_ACK_BLOCKING: call pm_ipi_send\n", __func__);
 #endif
 		return pm_ipi_send(primary_proc, payload);
 	}
