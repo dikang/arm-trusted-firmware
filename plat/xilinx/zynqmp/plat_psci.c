@@ -132,8 +132,10 @@ WARN("DK: zynqmp_nopmu_pwr_domain_on: start, cpu_id(%d), t_cpu_id(%d)\n", cpu_id
 
 	/* release core reset */
 	r = mmio_read_32(CRF_APB_RST_FPD_APU);
+WARN("DK: zynqmp_nopmu_pwr_domain_on: read CRF_APB_RST_FPD_APU(%x)\n", r);
 	r &= ~((CRF_APB_RST_FPD_APU_ACPU_PWRON_RESET |
 			CRF_APB_RST_FPD_APU_ACPU_RESET) << cpu_id);
+WARN("DK: zynqmp_nopmu_pwr_domain_on: write CRF_APB_RST_FPD_APU(%x)\n", r);
 	mmio_write_32(CRF_APB_RST_FPD_APU, r);	// DK: looks OK
 		// 0xFD1A0104 <- ~(((1 << 10) | (1 << 0) << cpu_id)
 		// 0xFD1A0104 <- ~( 0x400 | (1 << 0) << cpu_id)

@@ -34,7 +34,7 @@
 #ifdef DK
 int plat_core_pos_by_mpidr(u_register_t mpidr)
 {
-	WARN("plat_core_pos_by_mpidr: start\n");
+	WARN("plat_core_pos_by_mpidr: start with mpidr(0x%lx)\n", mpidr);
 	if (((mpidr & MPIDR_CLUSTER_MASK) != 0) && ((mpidr & MPIDR_CLUSTER_MASK) != 0x100)) 
 	{
 		WARN("plat_core_pos_by_mpidr: mpidr - 0x%lx, MPIDR_CUSTER_MASK - 0x%x, mpidr & MPIDR_CLUSTER_MASK = 0x%lx\n", mpidr, MPIDR_CLUSTER_MASK, mpidr & MPIDR_CLUSTER_MASK);

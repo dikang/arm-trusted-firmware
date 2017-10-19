@@ -857,6 +857,9 @@ VERBOSE("%s: after psci_set_pwr_domains_to_run\n", __func__);
 	 */
 	psci_release_pwr_domain_locks(end_pwrlvl,
 				      cpu_idx);
+#ifdef DK
+VERBOSE("%s: end\n", __func__);
+#endif
 }
 
 /*******************************************************************************
