@@ -82,7 +82,7 @@ int psci_cpu_on(u_register_t target_cpu,
 #endif
 #ifdef DK
 	int xx = psci_cpu_on_start(target_cpu, &ep);
-	WARN("DK: psci_cpu_on_start: returns %d\n", xx);
+	WARN("DK: %s: psci_cpu_on_start: returns %d\n", __func__, xx);
 	return xx;
 #else
 	return psci_cpu_on_start(target_cpu, &ep);
@@ -274,7 +274,9 @@ int psci_affinity_info(u_register_t target_affinity,
 	target_idx = plat_core_pos_by_mpidr(target_affinity);
 	if (target_idx == -1)
 		return PSCI_E_INVALID_PARAMS;
-
+#ifdef DK
+	WARN("DK: psci_affinity_info(%u) = %d\n", target_idx, psci_get_aff_info_state_by_idx(target_idx));
+#endif
 	return psci_get_aff_info_state_by_idx(target_idx);
 }
 
@@ -406,7 +408,7 @@ u_register_t psci_smc_handler(uint32_t smc_fid,
 			  void *handle,
 			  u_register_t flags)
 {
-	WARN("DK: psci_smc_handler: start: smc_fid(%u) \n", smc_fid);
+	WARN("DK: psci_smc_handler: start: smc_fid(0x%x) \n", smc_fid);
 	if (is_caller_secure(flags))
 		return SMC_UNK;
 
