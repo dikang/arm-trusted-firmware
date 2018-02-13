@@ -43,14 +43,9 @@
 
 uintptr_t zynqmp_sec_entry;
 
-#define DK_CPU_HOTPLUG
-#define DK
-#define DK_DBG
-/* 
-#ifdef DK
-#define LOG_LEVEL 999
-#endif
-*/
+#define HPSC_CPU_HOTPLUG
+#define HPSC
+//#define HPSC_DBG
 
 void zynqmp_cpu_standby(plat_local_state_t cpu_state)
 {
@@ -67,7 +62,7 @@ static int zynqmp_nopmu_pwr_domain_on(u_register_t mpidr)
 
 	VERBOSE("%s: mpidr: 0x%lx\n", __func__, mpidr);
 
-#ifdef DK
+#ifdef HPSC
 
 	VERBOSE("%s: mpidr: 0x%lx, cpu_id = %u\n", __func__, mpidr, cpu_id);
 	int t_cpu_id = 0;
@@ -77,12 +72,12 @@ static int zynqmp_nopmu_pwr_domain_on(u_register_t mpidr)
 		t_cpu_id = cpu_id - 4;
 	} else
 		t_cpu_id = cpu_id;
-WARN("DK: zynqmp_nopmu_pwr_domain_on: start, cpu_id(%d), t_cpu_id(%d)\n", cpu_id, t_cpu_id);
+WARN("%s: start, cpu_id(%d), t_cpu_id(%d)\n", __func__, cpu_id, t_cpu_id);
 #endif
 	if (cpu_id == -1)
 		return PSCI_E_INTERN_FAIL;
 
-#ifdef DK
+#ifdef HPSC
 	if (t_cpu_id == cpu_id) {
 #endif
 	/* program RVBAR */
@@ -103,7 +98,7 @@ WARN("DK: zynqmp_nopmu_pwr_domain_on: start, cpu_id(%d), t_cpu_id(%d)\n", cpu_id
 	r &= ~(1 << cpu_id);	/* ~(1 << cpu_id) =  */
 	mmio_write_32(APU_PWRCTL, r);	// FC5C0090 
 
-#ifdef DK
+#ifdef HPSC
 	} else {
 	/* program RVBAR */
 	mmio_write_32(APU1_RVBAR_L_0 + (t_cpu_id << 3), zynqmp_sec_entry);	
@@ -136,20 +131,18 @@ WARN("DK: zynqmp_nopmu_pwr_domain_on: start, cpu_id(%d), t_cpu_id(%d)\n", cpu_id
 
 	/* release core reset */
 	r = mmio_read_32(CRF_APB_RST_FPD_APU);
-WARN("DK: zynqmp_nopmu_pwr_domain_on: read CRF_APB_RST_FPD_APU(%x)\n", r);
-#ifdef DK_CPU_HOTPLUG
+#ifdef HPSC_CPU_HOTPLUG
 	unsigned new_r = r | (CRF_APB_RST_FPD_APU_ACPU_RESET << cpu_id);
 	if ((r & (CRF_APB_RST_FPD_APU_ACPU_RESET << cpu_id)) == 0) { 
 		// reset for cpu_id is 0. Then reset would not be triggered.
 		// Set the reset for cpu_id at 1.
 		mmio_write_32(CRF_APB_RST_FPD_APU, new_r);
 	new_r = mmio_read_32(CRF_APB_RST_FPD_APU);
-WARN("DK: zynqmp_nopmu_pwr_domain_on: fix: set it to 1, and then read CRF_APB_RST_FPD_APU(%x)\n", new_r);
+WARN("%s: fix: set it to 1, and then read CRF_APB_RST_FPD_APU(%x)\n", __func__, new_r);
 	}
 #endif
 	r &= ~((CRF_APB_RST_FPD_APU_ACPU_PWRON_RESET |
 			CRF_APB_RST_FPD_APU_ACPU_RESET) << cpu_id);
-WARN("DK: zynqmp_nopmu_pwr_domain_on: write CRF_APB_RST_FPD_APU(%x)\n", r);
 	mmio_write_32(CRF_APB_RST_FPD_APU, r);	// DK: looks OK
 		// 0xFD1A0104 <- ~(((1 << 10) | (1 << 0) << cpu_id)
 		// 0xFD1A0104 <- ~( 0x400 | (1 << 0) << cpu_id)
@@ -162,47 +155,47 @@ static int zynqmp_pwr_domain_on(u_register_t mpidr)
 	unsigned int cpu_id = plat_core_pos_by_mpidr(mpidr);
 	const struct pm_proc *proc;
 	VERBOSE("%s: cpu_id(0x%x):  mpidr: 0x%lx\n", __func__, cpu_id, mpidr);
-#ifdef DK
+#ifdef HPSC
 if (cpu_id >= 0x100) cpu_id = cpu_id - 0x100 + 4;
 #endif
 
 	if (cpu_id == -1)
 		return PSCI_E_INTERN_FAIL;
 
-#ifdef DK_DBG
+#ifdef HPSC_DBG
 	int kk;
 	aff_info_state_t kk2[8];
 	for (kk = 0; kk < 8; kk++) {
 		kk2[kk] = get_cpu_data_by_index(kk,psci_svc_cpu_data.aff_info_state); 
 	}
-	VERBOSE("DK: power state = (%d, %d, %d, %d, %d, %d, %d, %d)\n",
+	VERBOSE("power state = (%d, %d, %d, %d, %d, %d, %d, %d)\n",
 		kk2[0], kk2[1], kk2[2], kk2[3], kk2[4], kk2[5], kk2[6], kk2[7]); 
 #endif
 	proc = pm_get_proc(cpu_id);
 	/* Clear power down request */
-#ifdef DK_DBG
+#ifdef HPSC_DBG
 	for (kk = 0; kk < 8; kk++) {
 		kk2[kk] = get_cpu_data_by_index(kk,psci_svc_cpu_data.aff_info_state); 
 	}
-	VERBOSE("DK: power state = (%d, %d, %d, %d, %d, %d, %d, %d)\n",
+	VERBOSE("power state = (%d, %d, %d, %d, %d, %d, %d, %d)\n",
 		kk2[0], kk2[1], kk2[2], kk2[3], kk2[4], kk2[5], kk2[6], kk2[7]); 
 #endif
 	pm_client_wakeup(proc);
-#ifdef DK_DBG
+#ifdef HPSC_DBG
 	for (kk = 0; kk < 8; kk++) {
 		kk2[kk] = get_cpu_data_by_index(kk,psci_svc_cpu_data.aff_info_state); 
 	}
-	VERBOSE("DK: power state = (%d, %d, %d, %d, %d, %d, %d, %d)\n",
+	VERBOSE("power state = (%d, %d, %d, %d, %d, %d, %d, %d)\n",
 		kk2[0], kk2[1], kk2[2], kk2[3], kk2[4], kk2[5], kk2[6], kk2[7]); 
 #endif
 
 	/* Send request to PMU to wake up selected APU CPU core */
 	pm_req_wakeup(proc->node_id, 1, zynqmp_sec_entry, REQ_ACK_BLOCKING);
-#ifdef DK_DBG
+#ifdef HPSC_DBG
 	for (kk = 0; kk < 8; kk++) {
 		kk2[kk] = get_cpu_data_by_index(kk,psci_svc_cpu_data.aff_info_state); 
 	}
-	VERBOSE("DK: power state = (%d, %d, %d, %d, %d, %d, %d, %d)\n",
+	VERBOSE("power state = (%d, %d, %d, %d, %d, %d, %d, %d)\n",
 		kk2[0], kk2[1], kk2[2], kk2[3], kk2[4], kk2[5], kk2[6], kk2[7]); 
 #endif
 
@@ -228,9 +221,9 @@ VERBOSE("%s: cpu_id = %d : mmio_read_32(APU_PWRCTL) : 0x%x \n", __func__, cpu_id
 	mmio_write_32(APU_PWRCTL, r);
 VERBOSE("%s: cpu_id = %d : mmio_write_32(APU_PWRCTL, 0x%x) \n", __func__, cpu_id, r);
 
-#ifdef DK_DBG
+#ifdef HPSC_DBG
  r = mmio_read_32(CRF_APB_RST_FPD_APU);
- WARN("DK: zynqmp_nopmu_pwr_domain_off: read CRF_APB_RST_FPD_APU(%x)\n", r);
+ WARN("zynqmp_nopmu_pwr_domain_off: read CRF_APB_RST_FPD_APU(%x)\n", r);
 #endif
 }
 
@@ -266,12 +259,12 @@ static void zynqmp_nopmu_pwr_domain_suspend(const psci_power_state_t *target_sta
 		VERBOSE("%s: cpu_id(0x%x): target_state->pwr_domain_state[%lu]=%x\n",
 			__func__, cpu_id, i, target_state->pwr_domain_state[i]);
 
-#ifdef DK
+#ifdef HPSC
 	int t_cpu_id = 0;
 	if (cpu_id >= 0x100) t_cpu_id = cpu_id - 0x100;
 	else if (cpu_id >= 4) t_cpu_id = cpu_id - 4;
 	else t_cpu_id = cpu_id;
-WARN("DK: zynqmp_nopmu_pwr_domain_suspend: start, cpu_id(%d), t_cpu_id(%d)\n", cpu_id, t_cpu_id);
+WARN("%s: start, cpu_id(%d), t_cpu_id(%d)\n", __func__, cpu_id, t_cpu_id);
 
 	if (t_cpu_id == cpu_id) {
 #endif
@@ -288,7 +281,7 @@ WARN("DK: zynqmp_nopmu_pwr_domain_suspend: start, cpu_id(%d), t_cpu_id(%d)\n", c
 	r = mmio_read_32(APU_CONFIG_0);
 	r &= ~(1 << APU_CONFIG_0_VINITHI_SHIFT << cpu_id);
 	mmio_write_32(APU_CONFIG_0, r);
-#ifdef DK
+#ifdef HPSC
 	} else {
 	/* set power down request */
 	r = mmio_read_32(APU1_PWRCTL);
@@ -354,12 +347,12 @@ static void zynqmp_nopmu_pwr_domain_suspend_finish(const psci_power_state_t *tar
 	/* disable power up on IRQ */
 	mmio_write_32(PMU_GLOBAL_REQ_PWRUP_DIS, 1 << cpu_id);
 
-#ifdef DK
+#ifdef HPSC
 	int t_cpu_id = 0;
 	if (cpu_id >= 0x100) t_cpu_id = cpu_id - 0x100;
 	else if (cpu_id >= 4) t_cpu_id = cpu_id - 4;
 	else t_cpu_id = cpu_id;
-WARN("DK: zynqmp_nopmu_pwr_domain_suspend_finish: start, cpu_id(%d), t_cpu_id(%d)\n", cpu_id, t_cpu_id);
+WARN("%s: start, cpu_id(%d), t_cpu_id(%d)\n", __func__, cpu_id, t_cpu_id);
 
 	if (t_cpu_id == cpu_id) {
 #endif
@@ -367,7 +360,7 @@ WARN("DK: zynqmp_nopmu_pwr_domain_suspend_finish: start, cpu_id(%d), t_cpu_id(%d
 	r = mmio_read_32(APU_PWRCTL);
 	r &= ~(1 << cpu_id);
 	mmio_write_32(APU_PWRCTL, r);
-#ifdef DK
+#ifdef HPSC
 	} else {
 	/* clear powerdown bit */
 	r = mmio_read_32(APU1_PWRCTL);

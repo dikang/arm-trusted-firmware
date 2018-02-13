@@ -39,8 +39,6 @@
 #include <utils.h>
 #include <xlat_tables.h>
 
-#define DK
-
 #if LOG_LEVEL >= LOG_LEVEL_VERBOSE
 #define LVL0_SPACER ""
 #define LVL1_SPACER "  "
@@ -73,7 +71,7 @@ static mmap_region_t mmap[MAX_MMAP_REGIONS + 1];
 
 void print_mmap(void)
 {
-#ifdef DK
+#ifdef HPSC_DEBUG
 #else
 #if LOG_LEVEL >= LOG_LEVEL_VERBOSE
 	debug_print("mmap:\n");
@@ -258,7 +256,7 @@ static uint64_t mmap_desc(unsigned attr, unsigned long long addr_pa,
 			desc |= LOWER_ATTRS(ATTR_NON_CACHEABLE_INDEX | OSH);
 		}
 	}
-#ifdef DK
+#ifdef HPSC_DEBUG
 #else
 	debug_print((mem_type == MT_MEMORY) ? "MEM" :
 		((mem_type == MT_NON_CACHEABLE) ? "NC" : "DEV"));
@@ -343,7 +341,7 @@ static mmap_region_t *init_xlation_table_inner(mmap_region_t *mm,
 			++mm;
 			continue;
 		}
-#ifdef DK
+#ifdef HPSC_DEBUG
 #else
 		debug_print("%s VA:%p size:0x%llx ", get_level_spacer(level),
 			(void *)base_va, (unsigned long long)level_size);
@@ -376,7 +374,10 @@ static mmap_region_t *init_xlation_table_inner(mmap_region_t *mm,
 						new_table, level+1);
 		}
 
+#ifdef HPSC_DEBUG
+#else
 		debug_print("\n");
+#endif
 
 		*table++ = desc;
 		base_va += level_size;

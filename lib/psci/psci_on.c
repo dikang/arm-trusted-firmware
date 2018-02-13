@@ -38,8 +38,6 @@
 #include <stddef.h>
 #include "psci_private.h"
 
-#define DK
-
 /*******************************************************************************
  * This function checks whether a cpu which has been requested to be turned on
  * is OFF to begin with.
@@ -84,7 +82,7 @@ int psci_cpu_on_start(u_register_t target_cpu,
 	assert(psci_plat_pm_ops->pwr_domain_on &&
 			psci_plat_pm_ops->pwr_domain_on_finish);
 
-	WARN("DK: psci_cpu_on_start: before psci_spin_lock_cpu, target_idx = %u\n", target_idx);
+	WARN("%s: before psci_spin_lock_cpu, target_idx = %u\n", __func__, target_idx);
 	/* Protect against multiple CPUs trying to turn ON the same target CPU */
 	psci_spin_lock_cpu(target_idx);
 
@@ -92,19 +90,18 @@ int psci_cpu_on_start(u_register_t target_cpu,
 	 * Generic management: Ensure that the cpu is off to be
 	 * turned on.
 	 */
-	/* DK: psci_get_aff_info_state_by_idx -->
+	/* psci_get_aff_info_state_by_idx -->
 		lib/el3_runtime/aarch64/cpu_data.S
 		_cpu_data_by_index
 	*/ 
 	rc = cpu_on_validate_state(psci_get_aff_info_state_by_idx(target_idx));
-	WARN("DK: psci_cpu_on_start: after cpu_on_validate_state, rc= %d\n", rc);
-#ifdef DK
+#ifdef DK_DBG
 	int kk;
 	aff_info_state_t kk2[8];
 	for (kk = 0; kk < 8; kk++) {
 		kk2[kk] = psci_get_aff_info_state_by_idx(kk); 
 	}
-	WARN("DK: psci_cpu_on_start: power state = (%d, %d, %d, %d, %d, %d, %d, %d)\n",
+	WARN("psci_cpu_on_start: power state = (%d, %d, %d, %d, %d, %d, %d, %d)\n",
 		kk2[0], kk2[1], kk2[2], kk2[3], kk2[4], kk2[5], kk2[6], kk2[7]); 
 #endif
 	if (rc != PSCI_E_SUCCESS)
@@ -117,11 +114,11 @@ int psci_cpu_on_start(u_register_t target_cpu,
 	 */
 	if (psci_spd_pm && psci_spd_pm->svc_on) {
 		psci_spd_pm->svc_on(target_cpu);
-#ifdef DK
+#ifdef DK_DBG
 	for (kk = 0; kk < 8; kk++) {
 		kk2[kk] = psci_get_aff_info_state_by_idx(kk); 
 	}
-	WARN("DK: after psci_spd_pm->svc_on(%lu) power state = (%d, %d, %d, %d, %d, %d, %d, %d)\n",
+	WARN("after psci_spd_pm->svc_on(%lu) power state = (%d, %d, %d, %d, %d, %d, %d, %d)\n",
 		target_cpu, kk2[0], kk2[1], kk2[2], kk2[3], kk2[4], kk2[5], kk2[6], kk2[7]); 
 #endif
 	}
@@ -131,21 +128,20 @@ int psci_cpu_on_start(u_register_t target_cpu,
 	 * Flush aff_info_state as it will be accessed with caches
 	 * turned OFF.
 	 */
-	WARN("DK: psci_cpu_on_start: before psci_set_aff_info_state_by_idx\n");
 	psci_set_aff_info_state_by_idx(target_idx, AFF_STATE_ON_PENDING);
-#ifdef DK
+#ifdef DK_DBG
 	for (kk = 0; kk < 8; kk++) {
 		kk2[kk] = psci_get_aff_info_state_by_idx(kk); 
 	}
-	WARN("DK: psci_cpu_on_start: power state = (%d, %d, %d, %d, %d, %d, %d, %d)\n",
+	WARN("psci_cpu_on_start: power state = (%d, %d, %d, %d, %d, %d, %d, %d)\n",
 		kk2[0], kk2[1], kk2[2], kk2[3], kk2[4], kk2[5], kk2[6], kk2[7]); 
 #endif
 	flush_cpu_data_by_index(target_idx, psci_svc_cpu_data.aff_info_state);
-#ifdef DK
+#ifdef DK_DBG
 	for (kk = 0; kk < 8; kk++) {
 		kk2[kk] = psci_get_aff_info_state_by_idx(kk); 
 	}
-	WARN("DK: psci_cpu_on_start: power state = (%d, %d, %d, %d, %d, %d, %d, %d)\n",
+	WARN("psci_cpu_on_start: power state = (%d, %d, %d, %d, %d, %d, %d, %d)\n",
 		kk2[0], kk2[1], kk2[2], kk2[3], kk2[4], kk2[5], kk2[6], kk2[7]); 
 #endif
 
@@ -163,11 +159,11 @@ int psci_cpu_on_start(u_register_t target_cpu,
 
 		assert(psci_get_aff_info_state_by_idx(target_idx) == AFF_STATE_ON_PENDING);
 	}
-#ifdef DK
+#ifdef DK_DBG
 	for (kk = 0; kk < 8; kk++) {
 		kk2[kk] = psci_get_aff_info_state_by_idx(kk); 
 	}
-	WARN("DK: psci_cpu_on_start: power state = (%d, %d, %d, %d, %d, %d, %d, %d)\n",
+	WARN("psci_cpu_on_start: power state = (%d, %d, %d, %d, %d, %d, %d, %d)\n",
 		kk2[0], kk2[1], kk2[2], kk2[3], kk2[4], kk2[5], kk2[6], kk2[7]); 
 #endif
 
@@ -180,13 +176,12 @@ int psci_cpu_on_start(u_register_t target_cpu,
 	 * steps to power on.
 	 */
 	rc = psci_plat_pm_ops->pwr_domain_on(target_cpu);
-	WARN("DK: psci_cpu_on_start: after pwr_domain_on, rc = %d\n", rc);
 	assert(rc == PSCI_E_SUCCESS || rc == PSCI_E_INTERN_FAIL);
-#ifdef DK
+#ifdef DK_DBG
 	for (kk = 0; kk < 8; kk++) {
 		kk2[kk] = psci_get_aff_info_state_by_idx(kk); 
 	}
-	WARN("DK: psci_cpu_on_start: power state = (%d, %d, %d, %d, %d, %d, %d, %d)\n",
+	WARN("psci_cpu_on_start: power state = (%d, %d, %d, %d, %d, %d, %d, %d)\n",
 		kk2[0], kk2[1], kk2[2], kk2[3], kk2[4], kk2[5], kk2[6], kk2[7]); 
 #endif
 
@@ -201,14 +196,13 @@ int psci_cpu_on_start(u_register_t target_cpu,
 
 exit:
 	psci_spin_unlock_cpu(target_idx);
-#ifdef DK
+#ifdef DK_DBG
 	for (kk = 0; kk < 8; kk++) {
 		kk2[kk] = psci_get_aff_info_state_by_idx(kk); 
 	}
-	WARN("DK: psci_cpu_on_start: power state = (%d, %d, %d, %d, %d, %d, %d, %d)\n",
+	WARN("psci_cpu_on_start: power state = (%d, %d, %d, %d, %d, %d, %d, %d)\n",
 		kk2[0], kk2[1], kk2[2], kk2[3], kk2[4], kk2[5], kk2[6], kk2[7]); 
 #endif
-	WARN("DK: psci_cpu_on_start: return, rc = %d\n", rc);
 	return rc;
 }
 
@@ -226,9 +220,7 @@ void psci_cpu_on_finish(unsigned int cpu_idx,
 	 * register. The actual state of this cpu has already been
 	 * changed.
 	 */
-#ifdef DK
 	VERBOSE("%s: starts\n", __func__);
-#endif
 	psci_plat_pm_ops->pwr_domain_on_finish(state_info);
 
 	/*

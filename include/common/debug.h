@@ -42,7 +42,6 @@
 
 #ifdef LOG_LEVEL
 #undef LOG_LEVEL
-#define LOG_LEVEL 999 /* DK */
 #endif 
 
 #define LOG_LEVEL_NONE			0

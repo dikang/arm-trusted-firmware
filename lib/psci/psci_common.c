@@ -39,7 +39,6 @@
 #include <string.h>
 #include "psci_private.h"
 
-#define DK
 /*
  * SPD power management operations, expected to be supplied by the registered
  * SPD on successful SP initialization
@@ -344,15 +343,15 @@ void psci_set_pwr_domains_to_run(unsigned int end_pwrlvl)
 {
 	unsigned int parent_idx, cpu_idx = plat_my_core_pos(), lvl;
 	parent_idx = psci_cpu_pd_nodes[cpu_idx].parent_node;
-#ifdef DK
-WARN("DK: psci_set_pwr_domains_to_run : start, cpu_idx = %d)\n", cpu_idx);
+#ifdef HPSC_DBG
+	WARN("%s: start, cpu_idx = %d)\n", __func__, cpu_idx);
 	int kk;
 	aff_info_state_t kk2[8];
 
 	for (kk = 0; kk < 8; kk++) {
 		kk2[kk] = psci_get_aff_info_state_by_idx(kk); 
 	}
-	WARN("DK1: power state = (%d, %d, %d, %d, %d, %d, %d, %d)\n",
+	WARN("power state = (%d, %d, %d, %d, %d, %d, %d, %d)\n",
 		kk2[0], kk2[1], kk2[2], kk2[3], kk2[4], kk2[5], kk2[6], kk2[7]); 
 #endif
 
@@ -370,30 +369,30 @@ WARN("DK: psci_set_pwr_domains_to_run : start, cpu_idx = %d)\n", cpu_idx);
 					     PSCI_LOCAL_STATE_RUN);
 		parent_idx = psci_non_cpu_pd_nodes[parent_idx].parent_node;
 	}
-#ifdef DK
+#ifdef HPSC_DBG
 	for (kk = 0; kk < 8; kk++) {
 		kk2[kk] = psci_get_aff_info_state_by_idx(kk); 
 	}
-	WARN("DK2: power state = (%d, %d, %d, %d, %d, %d, %d, %d)\n",
+	WARN("power state = (%d, %d, %d, %d, %d, %d, %d, %d)\n",
 		kk2[0], kk2[1], kk2[2], kk2[3], kk2[4], kk2[5], kk2[6], kk2[7]); 
 #endif
 	/* Set the affinity info state to ON */
 	psci_set_aff_info_state(AFF_STATE_ON);
 
-#ifdef DK
+#ifdef HPSC_DBG
 	for (kk = 0; kk < 8; kk++) {
 		kk2[kk] = psci_get_aff_info_state_by_idx(kk); 
 	}
-	WARN("DK3: power state = (%d, %d, %d, %d, %d, %d, %d, %d)\n",
+	WARN("power state = (%d, %d, %d, %d, %d, %d, %d, %d)\n",
 		kk2[0], kk2[1], kk2[2], kk2[3], kk2[4], kk2[5], kk2[6], kk2[7]); 
 #endif
 	psci_set_cpu_local_state(PSCI_LOCAL_STATE_RUN);
 	flush_cpu_data(psci_svc_cpu_data);
-#ifdef DK
+#ifdef HPSC_DBG
 	for (kk = 0; kk < 8; kk++) {
 		kk2[kk] = psci_get_aff_info_state_by_idx(kk); 
 	}
-	WARN("DK4: power state = (%d, %d, %d, %d, %d, %d, %d, %d)\n",
+	WARN("power state = (%d, %d, %d, %d, %d, %d, %d, %d)\n",
 		kk2[0], kk2[1], kk2[2], kk2[3], kk2[4], kk2[5], kk2[6], kk2[7]); 
 #endif
 }
@@ -767,9 +766,8 @@ void psci_warmboot_entrypoint(void)
 {
 	unsigned int end_pwrlvl, cpu_idx = plat_my_core_pos();
 	psci_power_state_t state_info = { {PSCI_LOCAL_STATE_RUN} };
-#ifdef DK
-VERBOSE("%s: start\n", __func__);
-#endif
+
+	VERBOSE("%s: start\n", __func__);
 	/*
 	 * Verify that we have been explicitly turned ON or resumed from
 	 * suspend.
@@ -804,9 +802,6 @@ VERBOSE("%s: start\n", __func__);
 #endif
 
 	psci_get_target_local_pwr_states(end_pwrlvl, &state_info);
-#ifdef DK
-VERBOSE("%s: after psci_get_target_local_pwr_states\n", __func__);
-#endif
 
 	/*
 	 * This CPU could be resuming from suspend or it could have just been
@@ -822,24 +817,15 @@ VERBOSE("%s: after psci_get_target_local_pwr_states\n", __func__);
 	 */
 	if (psci_get_aff_info_state() == AFF_STATE_ON_PENDING) {
 		psci_cpu_on_finish(cpu_idx, &state_info);
-#ifdef DK
-VERBOSE("%s: after psci_cpu_on_finish\n", __func__);
-#endif
 	}
 	else {
 		psci_cpu_suspend_finish(cpu_idx, &state_info);
-#ifdef DK
-VERBOSE("%s: after psci_cpu_suspend_finish\n", __func__);
-#endif
 	}
 	/*
 	 * Set the requested and target state of this CPU and all the higher
 	 * power domains which are ancestors of this CPU to run.
 	 */
 	psci_set_pwr_domains_to_run(end_pwrlvl);
-#ifdef DK
-VERBOSE("%s: after psci_set_pwr_domains_to_run\n", __func__);
-#endif
 
 #if ENABLE_PSCI_STAT
 	/*
@@ -857,9 +843,6 @@ VERBOSE("%s: after psci_set_pwr_domains_to_run\n", __func__);
 	 */
 	psci_release_pwr_domain_locks(end_pwrlvl,
 				      cpu_idx);
-#ifdef DK
-VERBOSE("%s: end\n", __func__);
-#endif
 }
 
 /*******************************************************************************

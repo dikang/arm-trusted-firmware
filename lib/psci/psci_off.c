@@ -66,7 +66,6 @@ static void psci_set_power_off_state(psci_power_state_t *state_info)
  ******************************************************************************/
 int psci_do_cpu_off(unsigned int end_pwrlvl)
 {
-WARN("DK: psci_do_cpu_off: start\n");
 	int rc = PSCI_E_SUCCESS, idx = plat_my_core_pos();
 	psci_power_state_t state_info;
 
@@ -153,14 +152,10 @@ exit:
 		 * update to the affinity info state prior to cache line
 		 * invalidation.
 		 */
-WARN("DK: psci_do_cpu_off: rc == PSCI_E_SUCCESS\n");
 		flush_cpu_data(psci_svc_cpu_data.aff_info_state);
 		psci_set_aff_info_state(AFF_STATE_OFF);
-WARN("DK: psci_do_cpu_off: psci_set_aff_info_state(%u)\n", AFF_STATE_OFF);
 		dsbish();
 		inv_cpu_data(psci_svc_cpu_data.aff_info_state);
-unsigned int r = mmio_read_32(CRF_APB_RST_FPD_APU);
-WARN("DK: psci_do_cpu_off: read CRF_APB_RST_FPD_APU(%x)\n", r);
 
 #if ENABLE_RUNTIME_INSTRUMENTATION
 
