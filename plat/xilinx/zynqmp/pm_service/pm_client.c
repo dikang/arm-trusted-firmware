@@ -45,7 +45,7 @@
 #include "pm_ipi.h"
 #include "../zynqmp_def.h"
 
-#define DK
+#define HPSC
 
 #define IRQ_MAX		84
 #define NUM_GICD_ISENABLER	((IRQ_MAX >> 5) + 1)
@@ -82,7 +82,7 @@ static const struct pm_proc const pm_procs_all[] = {
 		.pwrdn_mask = APU_3_PWRCTL_CPUPWRDWNREQ_MASK,
 		.ipi = &apu_ipi,
 	},
-#ifdef DK
+#ifdef HPSC
 	{
 		.node_id = NODE_APU_4,
 		.pwrdn_mask = APU_4_PWRCTL_CPUPWRDWNREQ_MASK,
@@ -203,9 +203,7 @@ static enum pm_node_id irq_node_map[IRQ_MAX + 1] = {
  */
 static enum pm_node_id irq_to_pm_node(unsigned int irq)
 {
-#ifdef DK
 VERBOSE("%s: irq = %u\n", __func__, irq);
-#endif
 	assert(irq <= IRQ_MAX);
 	return irq_node_map[irq];
 }
@@ -324,9 +322,7 @@ void pm_client_suspend(const struct pm_proc *proc, unsigned int state)
 	if (state == PM_STATE_SUSPEND_TO_RAM)
 		pm_client_set_wakeup_sources();
 
-#ifdef DK
 VERBOSE("%s: proc->node_id= %d : mmio_write_32(APU_PWRCTL, mmio_read_32(APU_PWRCTL) | 0x%x \n", __func__, proc->node_id, proc->pwrdn_mask);
-#endif
 	/* Set powerdown request */
 	mmio_write_32(APU_PWRCTL, mmio_read_32(APU_PWRCTL) | proc->pwrdn_mask);
 
@@ -347,9 +343,7 @@ void pm_client_abort_suspend(void)
 
 	bakery_lock_get(&pm_client_secure_lock);
 
-#ifdef DK
 VERBOSE("%s: mmio_write_32(APU_PWRCTL, mmio_read_32(APU_PWRCTL) | 0x%x \n", __func__, ~primary_proc->pwrdn_mask);
-#endif
 	/* Clear powerdown request */
 	mmio_write_32(APU_PWRCTL,
 		 mmio_read_32(APU_PWRCTL) & ~primary_proc->pwrdn_mask);
@@ -372,25 +366,21 @@ void pm_client_wakeup(const struct pm_proc *proc)
 
 	bakery_lock_get(&pm_client_secure_lock);
 
-#ifdef DK
+#ifdef HPSC
 	if (cpuid >= 4) {
 		/* clear powerdown bit for affected cpu */
 		uint32_t val = mmio_read_32(APU1_PWRCTL);
 		val &= ~(proc->pwrdn_mask);
 		mmio_write_32(APU1_PWRCTL, val);
-#ifdef DK
 VERBOSE("%s: cpu_id(%u):  val = 0x%x, proc->pwrdn_mask = 0x%x \n", __func__, cpuid, val, proc->pwrdn_mask);
 VERBOSE("%s: cpu_id(%u):  mmio_write_32(APU1_PWRCTL, 0x%x) \n", __func__, cpuid, val);
-#endif
 	} else {
 		/* clear powerdown bit for affected cpu */
 		uint32_t val = mmio_read_32(APU_PWRCTL);
 		val &= ~(proc->pwrdn_mask);
 		mmio_write_32(APU_PWRCTL, val);
-#ifdef DK
 VERBOSE("%s: cpu_id(%u):  val = 0x%x, proc->pwrdn_mask = 0x%x \n", __func__, cpuid, val, proc->pwrdn_mask);
 VERBOSE("%s: cpu_id(%u):  mmio_write_32(APU_PWRCTL, 0x%x) \n", __func__, cpuid, val);
-#endif
 	}
 #else
 	mmio_write_32(APU_PWRCTL, val);
@@ -409,6 +399,3 @@ enum pm_ret_status pm_set_suspend_mode(uint32_t mode)
 	return PM_RET_SUCCESS;
 }
 
-#ifdef DK
-#undef DK
-#endif
