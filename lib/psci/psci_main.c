@@ -73,8 +73,8 @@ int psci_cpu_on(u_register_t target_cpu,
 	for (kk = 0; kk < 8; kk++) {
 		kk2[kk] = psci_get_aff_info_state_by_idx(kk); 
 	}
-	WARN("%s: power state = (%d, %d, %d, %d, %d, %d, %d, %d)\n",
-		__func__, kk2[0], kk2[1], kk2[2], kk2[3], kk2[4], kk2[5], kk2[6], kk2[7]); 
+	WARN("power state = (%d, %d, %d, %d, %d, %d, %d, %d)\n",
+		kk2[0], kk2[1], kk2[2], kk2[3], kk2[4], kk2[5], kk2[6], kk2[7]); 
 #endif
 #ifdef HPSC_DBG
 	int xx = psci_cpu_on_start(target_cpu, &ep);

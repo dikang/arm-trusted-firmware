@@ -39,20 +39,6 @@
 #include <string.h>
 #include "psci_private.h"
 
-#ifdef HPSC_DBG
-#define LOG_LEVEL 99
-#define dbg_print_power_state() { \
-	int kk; \
-	aff_info_state_t kk2[8]; \
-	for (kk = 0; kk < 8; kk++) { \
-		kk2[kk] = psci_get_aff_info_state_by_idx(kk);  \
-	} \
-	printf("%s: psci_cpu_on_start: power state = (%d, %d, %d, %d, %d, %d, %d, %d)\n", \
-		__func__, kk2[0], kk2[1], kk2[2], kk2[3], kk2[4], kk2[5], kk2[6], kk2[7]);  \
-} 
-#else
-#define dbg_print_power_state() 
-#endif
 /*
  * SPD power management operations, expected to be supplied by the registered
  * SPD on successful SP initialization
@@ -357,8 +343,17 @@ void psci_set_pwr_domains_to_run(unsigned int end_pwrlvl)
 {
 	unsigned int parent_idx, cpu_idx = plat_my_core_pos(), lvl;
 	parent_idx = psci_cpu_pd_nodes[cpu_idx].parent_node;
+#ifdef HPSC_DBG
+	WARN("%s: start, cpu_idx = %d)\n", __func__, cpu_idx);
+	int kk;
+	aff_info_state_t kk2[8];
 
-	dbg_print_power_state();
+	for (kk = 0; kk < 8; kk++) {
+		kk2[kk] = psci_get_aff_info_state_by_idx(kk); 
+	}
+	WARN("power state = (%d, %d, %d, %d, %d, %d, %d, %d)\n",
+		kk2[0], kk2[1], kk2[2], kk2[3], kk2[4], kk2[5], kk2[6], kk2[7]); 
+#endif
 
 	/* Reset the local_state to RUN for the non cpu power domains. */
 	for (lvl = PSCI_CPU_PWR_LVL + 1; lvl <= end_pwrlvl; lvl++) {
@@ -374,18 +369,32 @@ void psci_set_pwr_domains_to_run(unsigned int end_pwrlvl)
 					     PSCI_LOCAL_STATE_RUN);
 		parent_idx = psci_non_cpu_pd_nodes[parent_idx].parent_node;
 	}
-
-	dbg_print_power_state();
-
+#ifdef HPSC_DBG
+	for (kk = 0; kk < 8; kk++) {
+		kk2[kk] = psci_get_aff_info_state_by_idx(kk); 
+	}
+	WARN("power state = (%d, %d, %d, %d, %d, %d, %d, %d)\n",
+		kk2[0], kk2[1], kk2[2], kk2[3], kk2[4], kk2[5], kk2[6], kk2[7]); 
+#endif
 	/* Set the affinity info state to ON */
 	psci_set_aff_info_state(AFF_STATE_ON);
 
-	dbg_print_power_state();
-
+#ifdef HPSC_DBG
+	for (kk = 0; kk < 8; kk++) {
+		kk2[kk] = psci_get_aff_info_state_by_idx(kk); 
+	}
+	WARN("power state = (%d, %d, %d, %d, %d, %d, %d, %d)\n",
+		kk2[0], kk2[1], kk2[2], kk2[3], kk2[4], kk2[5], kk2[6], kk2[7]); 
+#endif
 	psci_set_cpu_local_state(PSCI_LOCAL_STATE_RUN);
 	flush_cpu_data(psci_svc_cpu_data);
-
-	dbg_print_power_state();
+#ifdef HPSC_DBG
+	for (kk = 0; kk < 8; kk++) {
+		kk2[kk] = psci_get_aff_info_state_by_idx(kk); 
+	}
+	WARN("power state = (%d, %d, %d, %d, %d, %d, %d, %d)\n",
+		kk2[0], kk2[1], kk2[2], kk2[3], kk2[4], kk2[5], kk2[6], kk2[7]); 
+#endif
 }
 
 /******************************************************************************

@@ -29,8 +29,8 @@
  */
 
 
-#define HPSC
-#ifdef HPSC
+#define DK
+#ifdef DK
 #include "include/platform_def.h"
 /* this is used to power up/down nodes */
 // static const unsigned char plat_power_domain_tree_desc[] = {1, 8};

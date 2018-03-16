@@ -35,6 +35,8 @@
 #include "pm_ipi.h"
 #include "../zynqmp_private.h"
 
+#define DK
+#define DK_DEBUG
 /* IPI message buffers */
 #define IPI_BUFFER_BASEADDR	0xFF990000U
 
@@ -218,8 +220,10 @@ static enum pm_ret_status pm_ipi_send_common(const struct pm_proc *proc,
 		mmio_write_32(buffer_base + offset, payload[i]);
 		offset += PAYLOAD_ARG_SIZE;
 	}
+#ifdef DK__
 	VERBOSE("pm_ipi_send_common: mmio_write_32, buffer_base(%lx): %x %x %x %x %x %x\n", 
 		buffer_base, payload[0], payload[1], payload[2], payload[3], payload[4], payload[5]);
+#endif
 	/* Generate IPI to PMU */
 	mmio_write_32(proc->ipi->base + IPI_TRIG_OFFSET, IPI_PMU_PM_INT_MASK);
 
@@ -239,8 +243,10 @@ enum pm_ret_status pm_ipi_send(const struct pm_proc *proc,
 			       uint32_t payload[PAYLOAD_ARG_CNT])
 {
 	enum pm_ret_status ret;
-
+#ifdef DK
 	VERBOSE("pm_ipi_send : start \n");
+#endif
+
 	bakery_lock_get(&pm_secure_lock);
 
 	ret = pm_ipi_send_common(proc, payload);
@@ -277,10 +283,14 @@ static enum pm_ret_status pm_ipi_buff_read(const struct pm_proc *proc,
 	 */
 	for (i = 1; i <= count; i++) {
 		*value = mmio_read_32(buffer_base + (i * PAYLOAD_ARG_SIZE));
+#ifdef DK_DEBUG__
 	VERBOSE("%s: value[%ld] = 0x%x\n", __func__, i, *value);
+#endif
 		value++;
 	}
+#ifdef DK_DEBUG__
 	VERBOSE("%s: count = %ld, read %lx \n", __func__, count, buffer_base);
+#endif
 
 	return mmio_read_32(buffer_base);
 }
@@ -325,18 +335,24 @@ enum pm_ret_status pm_ipi_send_sync(const struct pm_proc *proc,
 				    unsigned int *value, size_t count)
 {
 	enum pm_ret_status ret;
+#ifdef DK_DEBUG__
 	VERBOSE("pm_ipi_send_sync: start \n");
+#endif
 
 	bakery_lock_get(&pm_secure_lock);
 
 	ret = pm_ipi_send_common(proc, payload);
+#ifdef DK_DEBUG__
 	VERBOSE("pm_ipi_send_sync: after pm_ipi_send_common: return(%d)\n", ret);
+#endif
 	if (ret != PM_RET_SUCCESS)
 		goto unlock;
 
 	ret = pm_ipi_buff_read(proc, value, count);
 
+#ifdef DK_DEBUG__
 	VERBOSE("pm_ipi_send_sync: after pm_ipi_buff_read: return(%d)\n", ret);
+#endif
 
 unlock:
 	bakery_lock_release(&pm_secure_lock);

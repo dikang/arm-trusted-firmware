@@ -61,6 +61,7 @@ static void psci_init_pwr_domain_node(unsigned int node_idx,
 					unsigned int parent_idx,
 					unsigned int level)
 {
+WARN("DK: psci_init_pwr_domain_node: start, node_idx(%u), parent_idx(%u), level(%u)\n", node_idx, parent_idx, level);
 
 	if (level > PSCI_CPU_PWR_LVL) {
 		psci_non_cpu_pd_nodes[node_idx].level = level;
@@ -139,6 +140,7 @@ static void populate_power_domain_tree(const unsigned char *topology)
 	unsigned int node_index = 0, parent_node_index = 0, num_children;
 	int level = PLAT_MAX_PWR_LVL;
 
+WARN("DK: populate_power_domain_tree: start : level(%d), PSCI_CPU_PWR_LVL(%d)\n", level, PSCI_CPU_PWR_LVL);
 	/*
 	 * For each level the inputs are:
 	 * - number of nodes at this level in plat_array i.e. num_nodes_at_level
@@ -149,6 +151,7 @@ static void populate_power_domain_tree(const unsigned char *topology)
 	 *   psci_cpu_pd_nodes[] i.e. node_index depending upon the level.
 	 */
 	while (level >= PSCI_CPU_PWR_LVL) {
+WARN("DK: populate_power_domain_tree: inside while: num_nodes_at_lvl(%u)\n", num_nodes_at_lvl);
 		num_nodes_at_next_lvl = 0;
 		/*
 		 * For each entry (parent node) at this level in the plat_array:
@@ -159,12 +162,15 @@ static void populate_power_domain_tree(const unsigned char *topology)
 		 * - Accumulate the number of children at next level.
 		 */
 		for (i = 0; i < num_nodes_at_lvl; i++) {
+WARN("DK: populate_power_domain_tree: inside for: parent_node_index(%d), PSCI_NUM_NON_CPU_PWR_DOMAINS(%d)\n", parent_node_index, PSCI_NUM_NON_CPU_PWR_DOMAINS);
 			assert(parent_node_index <=
 					PSCI_NUM_NON_CPU_PWR_DOMAINS);
 			num_children = topology[parent_node_index];
+WARN("DK: populate_power_domain_tree: inside for: num_children(%d)\n", num_children);
 
 			for (j = node_index;
 				j < node_index + num_children; j++) {
+WARN("DK: populate_power_domain_tree: inside 2nd for: call psci_init_pwr_domain_node(%d, %d, %d)\n", j, parent_node_index - 1, level);
 				psci_init_pwr_domain_node(j,
 							  parent_node_index - 1,
 							  level);
@@ -184,6 +190,7 @@ static void populate_power_domain_tree(const unsigned char *topology)
 	}
 
 	/* Validate the sanity of array exported by the platform */
+WARN("DK: populate_power_domain_tree: last assert : assert(%d == %d)\n", j, PLATFORM_CORE_COUNT);
 	assert(j == PLATFORM_CORE_COUNT);
 }
 
@@ -231,9 +238,11 @@ int psci_setup(const psci_lib_args_t *lib_args)
 	/* Populate the mpidr field of cpu node for this CPU */
 	psci_cpu_pd_nodes[plat_my_core_pos()].mpidr =
 		read_mpidr() & MPIDR_AFFINITY_MASK;
+WARN("DK: psci_setup : plat_my_core_pos() = %d)\n", plat_my_core_pos());
 
 	psci_init_req_local_pwr_states();
 
+WARN("DK: psci_setup : psci_init_req_local_pwr_states)\n");
 	/*
 	 * Set the requested and target state of this CPU and all the higher
 	 * power domain levels for this CPU to run.
