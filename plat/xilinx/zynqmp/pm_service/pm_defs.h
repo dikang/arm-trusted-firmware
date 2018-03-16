@@ -33,7 +33,7 @@
 #ifndef _PM_DEFS_H_
 #define _PM_DEFS_H_
 
-#define DK_DEF
+#define HPSC_DEF
 /*********************************************************************
  * Macro definitions
  ********************************************************************/
@@ -102,7 +102,7 @@ enum pm_node_id {
 	NODE_APU_1,
 	NODE_APU_2,
 	NODE_APU_3,
-#ifdef DK_DEF
+#ifdef HPSC_DEF
 	NODE_APU_4,
 	NODE_APU_5,
 	NODE_APU_6,
@@ -262,7 +262,4 @@ enum pm_shutdown_subtype {
 	PMF_SHUTDOWN_SUBTYPE_SYSTEM,
 };
 
-#ifdef DK_DEF
-#undef DK_DEF
-#endif
 #endif /* _PM_DEFS_H_ */

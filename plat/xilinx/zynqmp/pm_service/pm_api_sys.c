@@ -40,7 +40,6 @@
 #include "pm_common.h"
 #include "pm_api_sys.h"
 
-#define DK
 /* default shutdown/reboot scope is system(2) */
 static unsigned int pm_shutdown_scope = PMF_SHUTDOWN_SUBTYPE_SYSTEM;
 
@@ -166,10 +165,6 @@ enum pm_ret_status pm_req_wakeup(enum pm_node_id target,
 	uint32_t payload[PAYLOAD_ARG_CNT];
 	uint64_t encoded_address;
 
-#ifdef DK
-VERBOSE("%s: DK: target(%d), set_address(0x%x), address(0x%lx)\n", __func__, target, set_address, address);
-#endif
-
 	/* encode set Address into 1st bit of address */
 	encoded_address = address;
 	encoded_address |= !!set_address;
@@ -177,24 +172,11 @@ VERBOSE("%s: DK: target(%d), set_address(0x%x), address(0x%lx)\n", __func__, tar
 	/* Send request to the PMU to perform the wake of the PU */
 	PM_PACK_PAYLOAD5(payload, PM_REQ_WAKEUP, target, encoded_address,
 			 encoded_address >> 32, ack);
-#ifdef DK
-VERBOSE("%s: DK: after PM_PACK_PAYLOAD5: payload[0x%x, 0x%x, 0x%x, 0x%x, 0x%x, 0x%x], encoded_address(0x%lx)\n",
-	__func__, payload[0], payload[1], payload[2], payload[3], payload[4], payload[5], encoded_address);
-#endif
-#ifdef DK
-VERBOSE("%s: DK: (ack = %d): before call pm_ipi_send \n", __func__, ack);
-#endif
 
 	if (ack == REQ_ACK_BLOCKING) {
-#ifdef DK
-VERBOSE("%s: (ack == REQ_ACK_BLOCKING: call pm_ipi_send_sync\n", __func__);
-#endif
 		return pm_ipi_send_sync(primary_proc, payload, NULL, 0);
 	}
 	else {
-#ifdef DK
-VERBOSE("%s: ack != REQ_ACK_BLOCKING: call pm_ipi_send\n", __func__);
-#endif
 		return pm_ipi_send(primary_proc, payload);
 	}
 }

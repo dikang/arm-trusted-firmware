@@ -35,6 +35,7 @@
 #include <platform.h>
 #include "psci_private.h"
 
+
 void psci_system_off(void)
 {
 	psci_print_power_domain_map();
@@ -45,7 +46,6 @@ void psci_system_off(void)
 	if (psci_spd_pm && psci_spd_pm->svc_system_off) {
 		psci_spd_pm->svc_system_off();
 	}
-
 	/* Call the platform specific hook */
 	psci_plat_pm_ops->system_off();
 

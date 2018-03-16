@@ -29,9 +29,9 @@
  */
 
 #include <plat_arm.h>
-#define DK
+#define HPSC
 #include <debug.h>
-#ifdef DK
+#ifdef HPSC 
 int plat_core_pos_by_mpidr(u_register_t mpidr)
 {
 	WARN("plat_core_pos_by_mpidr: start with mpidr(0x%lx)\n", mpidr);
@@ -48,7 +48,11 @@ int plat_core_pos_by_mpidr(u_register_t mpidr)
 	}
 
 	WARN("plat_core_pos_by_mpidr: return cpu # %d \n", plat_arm_calc_core_pos(mpidr));
+#ifdef HPSC_RELATIVE
+	return plat_arm_calc_core_pos(mpidr) + 1;	// this is an assembly code
+#else
 	return plat_arm_calc_core_pos(mpidr);	// this is an assembly code
+#endif
 }
 #else
 int plat_core_pos_by_mpidr(u_register_t mpidr)
