@@ -45,7 +45,6 @@ uintptr_t zynqmp_sec_entry;
 
 #define HPSC_CPU_HOTPLUG
 #define HPSC
-//#define HPSC_DBG
 
 void zynqmp_cpu_standby(plat_local_state_t cpu_state)
 {
@@ -168,8 +167,8 @@ if (cpu_id >= 0x100) cpu_id = cpu_id - 0x100 + 4;
 	for (kk = 0; kk < 8; kk++) {
 		kk2[kk] = get_cpu_data_by_index(kk,psci_svc_cpu_data.aff_info_state); 
 	}
-	VERBOSE("power state = (%d, %d, %d, %d, %d, %d, %d, %d)\n",
-		kk2[0], kk2[1], kk2[2], kk2[3], kk2[4], kk2[5], kk2[6], kk2[7]); 
+	VERBOSE("%s: power state = (%d, %d, %d, %d, %d, %d, %d, %d)\n",
+		__func__, kk2[0], kk2[1], kk2[2], kk2[3], kk2[4], kk2[5], kk2[6], kk2[7]); 
 #endif
 	proc = pm_get_proc(cpu_id);
 	/* Clear power down request */
@@ -177,16 +176,16 @@ if (cpu_id >= 0x100) cpu_id = cpu_id - 0x100 + 4;
 	for (kk = 0; kk < 8; kk++) {
 		kk2[kk] = get_cpu_data_by_index(kk,psci_svc_cpu_data.aff_info_state); 
 	}
-	VERBOSE("power state = (%d, %d, %d, %d, %d, %d, %d, %d)\n",
-		kk2[0], kk2[1], kk2[2], kk2[3], kk2[4], kk2[5], kk2[6], kk2[7]); 
+	VERBOSE("%s: power state = (%d, %d, %d, %d, %d, %d, %d, %d)\n",
+		__func__, kk2[0], kk2[1], kk2[2], kk2[3], kk2[4], kk2[5], kk2[6], kk2[7]); 
 #endif
 	pm_client_wakeup(proc);
 #ifdef HPSC_DBG
 	for (kk = 0; kk < 8; kk++) {
 		kk2[kk] = get_cpu_data_by_index(kk,psci_svc_cpu_data.aff_info_state); 
 	}
-	VERBOSE("power state = (%d, %d, %d, %d, %d, %d, %d, %d)\n",
-		kk2[0], kk2[1], kk2[2], kk2[3], kk2[4], kk2[5], kk2[6], kk2[7]); 
+	VERBOSE("%s: power state = (%d, %d, %d, %d, %d, %d, %d, %d)\n",
+		__func__, kk2[0], kk2[1], kk2[2], kk2[3], kk2[4], kk2[5], kk2[6], kk2[7]); 
 #endif
 
 	/* Send request to PMU to wake up selected APU CPU core */
@@ -195,8 +194,8 @@ if (cpu_id >= 0x100) cpu_id = cpu_id - 0x100 + 4;
 	for (kk = 0; kk < 8; kk++) {
 		kk2[kk] = get_cpu_data_by_index(kk,psci_svc_cpu_data.aff_info_state); 
 	}
-	VERBOSE("power state = (%d, %d, %d, %d, %d, %d, %d, %d)\n",
-		kk2[0], kk2[1], kk2[2], kk2[3], kk2[4], kk2[5], kk2[6], kk2[7]); 
+	VERBOSE("%s: power state = (%d, %d, %d, %d, %d, %d, %d, %d)\n",
+		__func__, kk2[0], kk2[1], kk2[2], kk2[3], kk2[4], kk2[5], kk2[6], kk2[7]); 
 #endif
 
 	return PSCI_E_SUCCESS;
@@ -400,12 +399,18 @@ static void zynqmp_pwr_domain_suspend_finish(const psci_power_state_t *target_st
  ******************************************************************************/
 static void __dead2 zynqmp_nopmu_system_off(void)
 {
-	ERROR("ZynqMP System Off: operation not handled.\n");
+//	ERROR("ZynqMP System Off: operation not handled.\n");
 
 	/* disable coherency */
 	plat_arm_interconnect_exit_coherency();
-
+#ifdef HPSC
+	/* trigger system reset */
+	mmio_write_32(CRL_APB_RESET_CTRL, 1 << 5);
+	while (1)
+		wfi();
+#else
 	panic();
+#endif
 }
 
 static void __dead2 zynqmp_system_off(void)
@@ -423,6 +428,12 @@ static void __dead2 zynqmp_system_off(void)
 
 static void __dead2 zynqmp_nopmu_system_reset(void)
 {
+	/* DK: if trigger APU only reset */
+	/* But, then who will load the images? */
+	/* this does not work, because the images (Linux, FDT, rootfs, etc.) are not reloaded by the system */
+	/*    --> it keeps idling. */
+	/* With TRCH, it can ask TRCH to start a boot process for Linux. */
+
 	/*
 	 * This currently triggers a system reset. I.e. the whole
 	 * system will be reset! Including RPUs, PMU, PL, etc.
@@ -436,9 +447,12 @@ static void __dead2 zynqmp_nopmu_system_reset(void)
 	reg |= CRL_APB_RPLL_CTRL_BYPASS;
 	mmio_write_32(CRL_APB_RPLL_CTRL, reg);
 
+#ifdef HPSC
+	/* trigger A53's reset first*/
+	mmio_write_32(CRF_APB_RST_FPD_APU, 1<<5); 
+#endif
 	/* trigger system reset */
 	mmio_write_32(CRL_APB_RESET_CTRL, CRL_APB_RESET_CTRL_SOFT_RESET);
-
 	while (1)
 		wfi();
 }
