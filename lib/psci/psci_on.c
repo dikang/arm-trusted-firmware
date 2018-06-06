@@ -37,7 +37,6 @@
 #include <platform.h>
 #include <stddef.h>
 #include "psci_private.h"
-
 /*******************************************************************************
  * This function checks whether a cpu which has been requested to be turned on
  * is OFF to begin with.
@@ -95,13 +94,13 @@ int psci_cpu_on_start(u_register_t target_cpu,
 		_cpu_data_by_index
 	*/ 
 	rc = cpu_on_validate_state(psci_get_aff_info_state_by_idx(target_idx));
-#ifdef DK_DBG
+#if LOG_LEVEL >= LOG_LEVEL_VERBOSE
 	int kk;
 	aff_info_state_t kk2[8];
 	for (kk = 0; kk < 8; kk++) {
 		kk2[kk] = psci_get_aff_info_state_by_idx(kk); 
 	}
-	WARN("psci_cpu_on_start: power state = (%d, %d, %d, %d, %d, %d, %d, %d)\n",
+	VERBOSE("psci_cpu_on_start: power state = (%d, %d, %d, %d, %d, %d, %d, %d)\n",
 		kk2[0], kk2[1], kk2[2], kk2[3], kk2[4], kk2[5], kk2[6], kk2[7]); 
 #endif
 	if (rc != PSCI_E_SUCCESS)
@@ -114,11 +113,11 @@ int psci_cpu_on_start(u_register_t target_cpu,
 	 */
 	if (psci_spd_pm && psci_spd_pm->svc_on) {
 		psci_spd_pm->svc_on(target_cpu);
-#ifdef DK_DBG
+#if LOG_LEVEL >= LOG_LEVEL_VERBOSE
 	for (kk = 0; kk < 8; kk++) {
 		kk2[kk] = psci_get_aff_info_state_by_idx(kk); 
 	}
-	WARN("after psci_spd_pm->svc_on(%lu) power state = (%d, %d, %d, %d, %d, %d, %d, %d)\n",
+	VERBOSE("after psci_spd_pm->svc_on(%lu) power state = (%d, %d, %d, %d, %d, %d, %d, %d)\n",
 		target_cpu, kk2[0], kk2[1], kk2[2], kk2[3], kk2[4], kk2[5], kk2[6], kk2[7]); 
 #endif
 	}
@@ -129,19 +128,19 @@ int psci_cpu_on_start(u_register_t target_cpu,
 	 * turned OFF.
 	 */
 	psci_set_aff_info_state_by_idx(target_idx, AFF_STATE_ON_PENDING);
-#ifdef DK_DBG
+#if LOG_LEVEL >= LOG_LEVEL_VERBOSE
 	for (kk = 0; kk < 8; kk++) {
 		kk2[kk] = psci_get_aff_info_state_by_idx(kk); 
 	}
-	WARN("psci_cpu_on_start: power state = (%d, %d, %d, %d, %d, %d, %d, %d)\n",
+	VERBOSE("psci_cpu_on_start: power state = (%d, %d, %d, %d, %d, %d, %d, %d)\n",
 		kk2[0], kk2[1], kk2[2], kk2[3], kk2[4], kk2[5], kk2[6], kk2[7]); 
 #endif
 	flush_cpu_data_by_index(target_idx, psci_svc_cpu_data.aff_info_state);
-#ifdef DK_DBG
+#if LOG_LEVEL >= LOG_LEVEL_VERBOSE
 	for (kk = 0; kk < 8; kk++) {
 		kk2[kk] = psci_get_aff_info_state_by_idx(kk); 
 	}
-	WARN("psci_cpu_on_start: power state = (%d, %d, %d, %d, %d, %d, %d, %d)\n",
+	VERBOSE("psci_cpu_on_start: power state = (%d, %d, %d, %d, %d, %d, %d, %d)\n",
 		kk2[0], kk2[1], kk2[2], kk2[3], kk2[4], kk2[5], kk2[6], kk2[7]); 
 #endif
 
@@ -159,11 +158,11 @@ int psci_cpu_on_start(u_register_t target_cpu,
 
 		assert(psci_get_aff_info_state_by_idx(target_idx) == AFF_STATE_ON_PENDING);
 	}
-#ifdef DK_DBG
+#if LOG_LEVEL >= LOG_LEVEL_VERBOSE
 	for (kk = 0; kk < 8; kk++) {
 		kk2[kk] = psci_get_aff_info_state_by_idx(kk); 
 	}
-	WARN("psci_cpu_on_start: power state = (%d, %d, %d, %d, %d, %d, %d, %d)\n",
+	VERBOSE("psci_cpu_on_start: power state = (%d, %d, %d, %d, %d, %d, %d, %d)\n",
 		kk2[0], kk2[1], kk2[2], kk2[3], kk2[4], kk2[5], kk2[6], kk2[7]); 
 #endif
 
@@ -177,11 +176,11 @@ int psci_cpu_on_start(u_register_t target_cpu,
 	 */
 	rc = psci_plat_pm_ops->pwr_domain_on(target_cpu);
 	assert(rc == PSCI_E_SUCCESS || rc == PSCI_E_INTERN_FAIL);
-#ifdef DK_DBG
+#if LOG_LEVEL >= LOG_LEVEL_VERBOSE
 	for (kk = 0; kk < 8; kk++) {
 		kk2[kk] = psci_get_aff_info_state_by_idx(kk); 
 	}
-	WARN("psci_cpu_on_start: power state = (%d, %d, %d, %d, %d, %d, %d, %d)\n",
+	VERBOSE("psci_cpu_on_start: power state = (%d, %d, %d, %d, %d, %d, %d, %d)\n",
 		kk2[0], kk2[1], kk2[2], kk2[3], kk2[4], kk2[5], kk2[6], kk2[7]); 
 #endif
 
@@ -196,11 +195,11 @@ int psci_cpu_on_start(u_register_t target_cpu,
 
 exit:
 	psci_spin_unlock_cpu(target_idx);
-#ifdef DK_DBG
+#if LOG_LEVEL >= LOG_LEVEL_VERBOSE
 	for (kk = 0; kk < 8; kk++) {
 		kk2[kk] = psci_get_aff_info_state_by_idx(kk); 
 	}
-	WARN("psci_cpu_on_start: power state = (%d, %d, %d, %d, %d, %d, %d, %d)\n",
+	VERBOSE("psci_cpu_on_start: power state = (%d, %d, %d, %d, %d, %d, %d, %d)\n",
 		kk2[0], kk2[1], kk2[2], kk2[3], kk2[4], kk2[5], kk2[6], kk2[7]); 
 #endif
 	return rc;

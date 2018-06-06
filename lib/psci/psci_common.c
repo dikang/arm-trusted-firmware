@@ -343,15 +343,15 @@ void psci_set_pwr_domains_to_run(unsigned int end_pwrlvl)
 {
 	unsigned int parent_idx, cpu_idx = plat_my_core_pos(), lvl;
 	parent_idx = psci_cpu_pd_nodes[cpu_idx].parent_node;
-#ifdef HPSC_DBG
-	WARN("%s: start, cpu_idx = %d)\n", __func__, cpu_idx);
+#if LOG_LEVEL >= LOG_LEVEL_VERBOSE
+	VERBOSE("%s: start, cpu_idx = %d)\n", __func__, cpu_idx);
 	int kk;
 	aff_info_state_t kk2[8];
 
 	for (kk = 0; kk < 8; kk++) {
 		kk2[kk] = psci_get_aff_info_state_by_idx(kk); 
 	}
-	WARN("power state = (%d, %d, %d, %d, %d, %d, %d, %d)\n",
+	VERBOSE("power state = (%d, %d, %d, %d, %d, %d, %d, %d)\n",
 		kk2[0], kk2[1], kk2[2], kk2[3], kk2[4], kk2[5], kk2[6], kk2[7]); 
 #endif
 
@@ -369,30 +369,30 @@ void psci_set_pwr_domains_to_run(unsigned int end_pwrlvl)
 					     PSCI_LOCAL_STATE_RUN);
 		parent_idx = psci_non_cpu_pd_nodes[parent_idx].parent_node;
 	}
-#ifdef HPSC_DBG
+#if LOG_LEVEL >= LOG_LEVEL_VERBOSE
 	for (kk = 0; kk < 8; kk++) {
 		kk2[kk] = psci_get_aff_info_state_by_idx(kk); 
 	}
-	WARN("power state = (%d, %d, %d, %d, %d, %d, %d, %d)\n",
+	VERBOSE("power state = (%d, %d, %d, %d, %d, %d, %d, %d)\n",
 		kk2[0], kk2[1], kk2[2], kk2[3], kk2[4], kk2[5], kk2[6], kk2[7]); 
 #endif
 	/* Set the affinity info state to ON */
 	psci_set_aff_info_state(AFF_STATE_ON);
 
-#ifdef HPSC_DBG
+#if LOG_LEVEL >= LOG_LEVEL_VERBOSE
 	for (kk = 0; kk < 8; kk++) {
 		kk2[kk] = psci_get_aff_info_state_by_idx(kk); 
 	}
-	WARN("power state = (%d, %d, %d, %d, %d, %d, %d, %d)\n",
+	VERBOSE("power state = (%d, %d, %d, %d, %d, %d, %d, %d)\n",
 		kk2[0], kk2[1], kk2[2], kk2[3], kk2[4], kk2[5], kk2[6], kk2[7]); 
 #endif
 	psci_set_cpu_local_state(PSCI_LOCAL_STATE_RUN);
 	flush_cpu_data(psci_svc_cpu_data);
-#ifdef HPSC_DBG
+#if LOG_LEVEL >= LOG_LEVEL_VERBOSE
 	for (kk = 0; kk < 8; kk++) {
 		kk2[kk] = psci_get_aff_info_state_by_idx(kk); 
 	}
-	WARN("power state = (%d, %d, %d, %d, %d, %d, %d, %d)\n",
+	VERBOSE("power state = (%d, %d, %d, %d, %d, %d, %d, %d)\n",
 		kk2[0], kk2[1], kk2[2], kk2[3], kk2[4], kk2[5], kk2[6], kk2[7]); 
 #endif
 }

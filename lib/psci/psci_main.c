@@ -67,18 +67,18 @@ int psci_cpu_on(u_register_t target_cpu,
 	 * To turn this cpu on, specify which power
 	 * levels need to be turned on
 	 */
-#ifdef HPSC_DBG
+#if LOG_LEVEL >= LOG_LEVEL_VERBOSE
 	int kk;
 	aff_info_state_t kk2[8];
 	for (kk = 0; kk < 8; kk++) {
 		kk2[kk] = psci_get_aff_info_state_by_idx(kk); 
 	}
-	WARN("power state = (%d, %d, %d, %d, %d, %d, %d, %d)\n",
+	VERBOSE("power state = (%d, %d, %d, %d, %d, %d, %d, %d)\n",
 		kk2[0], kk2[1], kk2[2], kk2[3], kk2[4], kk2[5], kk2[6], kk2[7]); 
 #endif
-#ifdef HPSC_DBG
+#if LOG_LEVEL >= LOG_LEVEL_VERBOSE
 	int xx = psci_cpu_on_start(target_cpu, &ep);
-	WARN("%s: psci_cpu_on_start: returns %d\n", __func__, xx);
+	VERBOSE("%s: psci_cpu_on_start: returns %d\n", __func__, xx);
 	return xx;
 #else
 	return psci_cpu_on_start(target_cpu, &ep);
@@ -270,8 +270,8 @@ int psci_affinity_info(u_register_t target_affinity,
 	target_idx = plat_core_pos_by_mpidr(target_affinity);
 	if (target_idx == -1)
 		return PSCI_E_INVALID_PARAMS;
-#ifdef HPSC_DBG
-	WARN("%s(%u) = %d\n", __func__, target_idx, psci_get_aff_info_state_by_idx(target_idx));
+#if LOG_LEVEL >= LOG_LEVEL_VERBOSE
+	VERBOSE("%s(%u) = %d\n", __func__, target_idx, psci_get_aff_info_state_by_idx(target_idx));
 #endif
 	return psci_get_aff_info_state_by_idx(target_idx);
 }

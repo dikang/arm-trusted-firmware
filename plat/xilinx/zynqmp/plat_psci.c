@@ -161,7 +161,7 @@ if (cpu_id >= 0x100) cpu_id = cpu_id - 0x100 + 4;
 	if (cpu_id == -1)
 		return PSCI_E_INTERN_FAIL;
 
-#ifdef HPSC_DBG
+#if LOG_LEVEL >= LOG_LEVEL_VERBOSE
 	int kk;
 	aff_info_state_t kk2[8];
 	for (kk = 0; kk < 8; kk++) {
@@ -172,7 +172,7 @@ if (cpu_id >= 0x100) cpu_id = cpu_id - 0x100 + 4;
 #endif
 	proc = pm_get_proc(cpu_id);
 	/* Clear power down request */
-#ifdef HPSC_DBG
+#if LOG_LEVEL >= LOG_LEVEL_VERBOSE
 	for (kk = 0; kk < 8; kk++) {
 		kk2[kk] = get_cpu_data_by_index(kk,psci_svc_cpu_data.aff_info_state); 
 	}
@@ -180,7 +180,7 @@ if (cpu_id >= 0x100) cpu_id = cpu_id - 0x100 + 4;
 		__func__, kk2[0], kk2[1], kk2[2], kk2[3], kk2[4], kk2[5], kk2[6], kk2[7]); 
 #endif
 	pm_client_wakeup(proc);
-#ifdef HPSC_DBG
+#if LOG_LEVEL >= LOG_LEVEL_VERBOSE
 	for (kk = 0; kk < 8; kk++) {
 		kk2[kk] = get_cpu_data_by_index(kk,psci_svc_cpu_data.aff_info_state); 
 	}
@@ -190,7 +190,7 @@ if (cpu_id >= 0x100) cpu_id = cpu_id - 0x100 + 4;
 
 	/* Send request to PMU to wake up selected APU CPU core */
 	pm_req_wakeup(proc->node_id, 1, zynqmp_sec_entry, REQ_ACK_BLOCKING);
-#ifdef HPSC_DBG
+#if LOG_LEVEL >= LOG_LEVEL_VERBOSE
 	for (kk = 0; kk < 8; kk++) {
 		kk2[kk] = get_cpu_data_by_index(kk,psci_svc_cpu_data.aff_info_state); 
 	}
@@ -220,9 +220,9 @@ VERBOSE("%s: cpu_id = %d : mmio_read_32(APU_PWRCTL) : 0x%x \n", __func__, cpu_id
 	mmio_write_32(APU_PWRCTL, r);
 VERBOSE("%s: cpu_id = %d : mmio_write_32(APU_PWRCTL, 0x%x) \n", __func__, cpu_id, r);
 
-#ifdef HPSC_DBG
+#if LOG_LEVEL >= LOG_LEVEL_VERBOSE
  r = mmio_read_32(CRF_APB_RST_FPD_APU);
- WARN("zynqmp_nopmu_pwr_domain_off: read CRF_APB_RST_FPD_APU(%x)\n", r);
+ VERBOSE("zynqmp_nopmu_pwr_domain_off: read CRF_APB_RST_FPD_APU(%x)\n", r);
 #endif
 }
 

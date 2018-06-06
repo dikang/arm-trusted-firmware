@@ -84,9 +84,15 @@
 /*******************************************************************************
  * BL32 specific defines.
  ******************************************************************************/
+#define HPSC_MEM
 #ifndef ZYNQMP_BL32_MEM_BASE
+#ifdef HPSC_MEM
+# define BL32_BASE			0xe0000000
+# define BL32_LIMIT			0xffffffff
+#else
 # define BL32_BASE			0x60000000
 # define BL32_LIMIT			0x7fffffff
+#endif
 #else
 # define BL32_BASE			(ZYNQMP_BL32_MEM_BASE)
 # define BL32_LIMIT			(ZYNQMP_BL32_MEM_BASE + ZYNQMP_BL32_MEM_SIZE - 1)
@@ -96,7 +102,11 @@
  * BL33 specific defines.
  ******************************************************************************/
 #ifndef PRELOADED_BL33_BASE
-# define PLAT_ARM_NS_IMAGE_OFFSET	0x8000000
+#ifdef HPSC_MEM
+# define PLAT_ARM_NS_IMAGE_OFFSET	0x88000000
+#else
+# define PLAT_ARM_NS_IMAGE_OFFSET	0x08000000
+#endif
 #else
 # define PLAT_ARM_NS_IMAGE_OFFSET	PRELOADED_BL33_BASE
 #endif

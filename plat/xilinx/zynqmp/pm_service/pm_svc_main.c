@@ -216,11 +216,13 @@ uint64_t pm_smc_handler(uint32_t smc_fid, uint64_t x1, uint64_t x2, uint64_t x3,
 	/* Handle case where PM wasn't initialized properly */
 	if (pm_down)
 		SMC_RET1(handle, SMC_UNK);
-
 	pm_arg[0] = (uint32_t)x1;
 	pm_arg[1] = (uint32_t)(x1 >> 32);
 	pm_arg[2] = (uint32_t)x2;
 	pm_arg[3] = (uint32_t)(x2 >> 32);
+
+	INFO("ATF %s: smc_fid(0x%x), pm_arg[0](0x%x), pm_arg[1](0x%x), pm_arg[2](0x%x), pm_arg[3](0x%x)\n",
+		__func__, smc_fid, pm_arg[0], pm_arg[1], pm_arg[2], pm_arg[3]);
 
 // INFO("%s: start: PM API %d!\n", __func__, smc_fid & FUNCID_NUM_MASK);
 
