@@ -32,7 +32,12 @@
 #include <errno.h>
 #include <assert.h>
 #include <debug.h>
+#define HPSC_NEW_GIC
+#ifdef HPSC_NEW_GIC
+#include <gicv3.h>
+#else
 #include <gicv2.h>
+#endif
 #include <mmio.h>
 #include <plat_arm.h>
 #include <platform.h>
@@ -211,7 +216,11 @@ static void zynqmp_nopmu_pwr_domain_off(const psci_power_state_t *target_state)
 			__func__, i, target_state->pwr_domain_state[i]);
 
 	/* Prevent interrupts from spuriously waking up this cpu */
+#ifdef HPSC_NEW_GIC
+	gicv3_cpuif_disable(plat_my_core_pos());
+#else
 	gicv2_cpuif_disable();
+#endif
 
 	/* set power down request */
 	r = mmio_read_32(APU_PWRCTL);
@@ -236,7 +245,11 @@ static void zynqmp_pwr_domain_off(const psci_power_state_t *target_state)
 			__func__, i, target_state->pwr_domain_state[i]);
 
 	/* Prevent interrupts from spuriously waking up this cpu */
+#ifdef HPSC_NEW_GIC
+	gicv3_cpuif_disable(plat_my_core_pos());
+#else
 	gicv2_cpuif_disable();
+#endif
 
 	/*
 	 * Send request to PMU to power down the appropriate APU CPU
@@ -330,8 +343,13 @@ static void zynqmp_pwr_domain_on_finish(const psci_power_state_t *target_state)
 		VERBOSE("%s: target_state->pwr_domain_state[%lu]=%x\n",
 			__func__, i, target_state->pwr_domain_state[i]);
 
+#ifdef HPSC_NEW_GIC
+	gicv3_cpuif_enable(plat_my_core_pos());
+	gicv3_rdistif_init(plat_my_core_pos());
+#else
 	gicv2_cpuif_enable();
 	gicv2_pcpu_distif_init();
+#endif
 }
 
 static void zynqmp_nopmu_pwr_domain_suspend_finish(const psci_power_state_t *target_state)
@@ -388,9 +406,15 @@ static void zynqmp_pwr_domain_suspend_finish(const psci_power_state_t *target_st
 		VERBOSE("%s: cpu(%d): plat_arm_gic_init()\n", __func__, cpu_id);
 		plat_arm_gic_init();
 	} else {
+#ifdef HPSC_NEW_GIC
+		VERBOSE("%s: cpu(%d): gicv3_cpuif_enable()\n", __func__, cpu_id);
+		gicv3_cpuif_enable(plat_my_core_pos());
+		gicv3_rdistif_init(plat_my_core_pos());
+#else
 		VERBOSE("%s: cpu(%d): gicv2_cpuif_enable()\n", __func__, cpu_id);
 		gicv2_cpuif_enable();
 		gicv2_pcpu_distif_init();
+#endif
 	}
 }
 

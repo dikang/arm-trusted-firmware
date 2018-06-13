@@ -28,7 +28,11 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+#define HPSC_NEW_GIC
+#ifdef HPSC_NEW_GIC
+#else
 #include <arm_def.h>
+#endif
 #include <gicv3.h>
 #include <plat_arm.h>
 #include <platform.h>

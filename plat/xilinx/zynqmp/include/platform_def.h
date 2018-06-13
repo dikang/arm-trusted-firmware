@@ -41,8 +41,9 @@
 /* Size of cacheable stacks */
 #define PLATFORM_STACK_SIZE 0x440
 
-#define DK_DEF
-#ifdef DK_DEF
+#define HPSC_NEW_GIC
+#define HPSC
+#ifdef HPSC
 #define HPSC_PWR_DOMAINS_AT_MAX_PWR_LVL 1
 #define HPSC_CLUSTER_COUNT 2
 #define HPSC_CLUSTER0_CORE_COUNT 4
@@ -137,6 +138,19 @@
  * terminology. On a GICv2 system or mode, the lists will be merged and treated
  * as Group 0 interrupts.
  */
+#ifdef HPSC_NEW_GIC
+#define PLAT_ARM_G1S_IRQS	ARM_IRQ_SEC_PHY_TIMER,	\
+				ARM_IRQ_SEC_SGI_1,	\
+				ARM_IRQ_SEC_SGI_2,	\
+				ARM_IRQ_SEC_SGI_3,	\
+				ARM_IRQ_SEC_SGI_4,	\
+				ARM_IRQ_SEC_SGI_5,	\
+				ARM_IRQ_SEC_SGI_7
+
+#define PLAT_ARM_G0_IRQS	ARM_IRQ_SEC_SGI_0,	\
+				ARM_IRQ_SEC_SGI_6
+
+#else
 #if !ZYNQMP_WARM_RESTART
 #define PLAT_ARM_G1S_IRQS	ARM_IRQ_SEC_PHY_TIMER,	\
 				ARM_IRQ_SEC_SGI_0,	\
@@ -162,8 +176,9 @@
 #endif
 
 #define PLAT_ARM_G0_IRQS
+#endif
 
-#ifdef DK_DEF
-#undef DK_DEF
+#ifdef HPSC
+#undef HPSC
 #endif
 #endif /* __PLATFORM_DEF_H__ */

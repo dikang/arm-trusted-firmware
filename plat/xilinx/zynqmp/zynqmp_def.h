@@ -34,7 +34,8 @@
 #include <common_def.h>
 
 #define DK_DEF 
-
+#define HPSC_NEW_MEM
+#define HPSC_NEW_GIC
 #define ZYNQMP_CONSOLE_ID_cadence	1
 #define ZYNQMP_CONSOLE_ID_cadence0	1
 #define ZYNQMP_CONSOLE_ID_cadence1	2
@@ -137,13 +138,29 @@
 #define PLAT_ARM_CCI_CLUSTER0_SL_IFACE_IX	3
 #define PLAT_ARM_CCI_CLUSTER1_SL_IFACE_IX	4
 
+#ifdef HPSC_NEW_GIC
+#define BASE_GICD_BASE		0xF9000000
+#define PLAT_ARM_GICR_BASE 	0xF9100000
+
+/* DK: Probably for gicv2 backward compatibility */
+#define BASE_GICC_BASE		0xF9020000
+#define VE_GICC_BASE		0xF9020000
+#else
 /*******************************************************************************
  * GIC-400 & interrupt handling related constants
  ******************************************************************************/
+#ifdef HPSC_NEW_MEM
 #define BASE_GICD_BASE		0xF9010000
 #define BASE_GICC_BASE		0xF9020000
 #define BASE_GICH_BASE		0xF9040000
 #define BASE_GICV_BASE		0xF9060000
+#else
+#define BASE_GICD_BASE		0xF9010000
+#define BASE_GICC_BASE		0xF9020000
+#define BASE_GICH_BASE		0xF9040000
+#define BASE_GICV_BASE		0xF9060000
+#endif
+#endif
 
 #if ZYNQMP_WARM_RESTART
 #define IRQ_SEC_IPI_APU				67

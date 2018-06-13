@@ -63,23 +63,24 @@ endif
 PLAT_INCLUDES		:=	-Iinclude/plat/arm/common/			\
 				-Iinclude/plat/arm/common/aarch64/		\
 				-Iplat/xilinx/zynqmp/include/			\
-				-Iplat/xilinx/zynqmp/pm_service/
+				-Iinclude/plat/arm/board/common/		\
+				-Iplat/xilinx/zynqmp/pm_service/		
 
 PLAT_BL_COMMON_SOURCES	:=	lib/xlat_tables/xlat_tables_common.c		\
 				lib/xlat_tables/aarch64/xlat_tables.c		\
 				drivers/delay_timer/delay_timer.c		\
 				drivers/delay_timer/generic_delay_timer.c	\
 				drivers/arm/gic/common/gic_common.c		\
-				drivers/arm/gic/v2/gicv2_main.c			\
-				drivers/arm/gic/v2/gicv2_helpers.c		\
+				drivers/arm/gic/v3/gicv3_main.c			\
+				drivers/arm/gic/v3/gicv3_helpers.c		\
 				drivers/console/aarch64/console.S		\
 				plat/arm/common/aarch64/arm_helpers.S		\
 				plat/arm/common/arm_cci.c			\
 				plat/arm/common/arm_common.c			\
-				plat/arm/common/arm_gicv2.c			\
-				plat/common/plat_gicv2.c			\
+				plat/arm/common/arm_gicv3.c			\
+				plat/common/plat_gicv3.c			\
 				plat/common/aarch64/plat_common.c		\
-				plat/xilinx/zynqmp/aarch64/zynqmp_helpers.S	\
+				plat/xilinx/zynqmp/aarch64/zynqmp_helpers_gicv3.S	\
 				plat/xilinx/zynqmp/aarch64/zynqmp_common.c
 
 ZYNQMP_CONSOLE	?=	cadence
