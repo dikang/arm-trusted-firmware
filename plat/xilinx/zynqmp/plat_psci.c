@@ -84,6 +84,7 @@ WARN("%s: start, cpu_id(%d), t_cpu_id(%d)\n", __func__, cpu_id, t_cpu_id);
 #ifdef HPSC
 	if (t_cpu_id == cpu_id) {
 #endif
+#if 0 /* RVBAR setting through APU is currently broken; value fixed in device tree */
 	/* program RVBAR */
 	mmio_write_32(APU_RVBAR_L_0 + (cpu_id << 3), zynqmp_sec_entry);	
 		// 0xFD5C0000 + 0x40 + (cpu_id << 3)
@@ -91,6 +92,7 @@ WARN("%s: start, cpu_id(%d), t_cpu_id(%d)\n", __func__, cpu_id, t_cpu_id);
 	mmio_write_32(APU_RVBAR_H_0 + (cpu_id << 3), zynqmp_sec_entry >> 32); // 0xFD5C0000 + 0x44
 		// 0xFD5C0000 + 0x44 + (cpu_id << 3)
 		// 0xFD5C00{44, 4C, 54, 5C, 64, 6C, 74, 7C}
+#endif
 
 	/* clear VINITHI */
 	r = mmio_read_32(APU_CONFIG_0);
@@ -104,6 +106,7 @@ WARN("%s: start, cpu_id(%d), t_cpu_id(%d)\n", __func__, cpu_id, t_cpu_id);
 
 #ifdef HPSC
 	} else {
+#if 0 /* RVBAR setting through APU is currently broken; value fixed in device tree */
 	/* program RVBAR */
 	mmio_write_32(APU1_RVBAR_L_0 + (t_cpu_id << 3), zynqmp_sec_entry);	
 		// 0xFD5C1000 + 0x40 + (cpu_id << 3)
@@ -111,6 +114,7 @@ WARN("%s: start, cpu_id(%d), t_cpu_id(%d)\n", __func__, cpu_id, t_cpu_id);
 	mmio_write_32(APU1_RVBAR_H_0 + (t_cpu_id << 3), zynqmp_sec_entry >> 32); // 0xFD5C0000 + 0x44
 		// 0xFD5C1000 + 0x44 + (cpu_id << 3)
 		// 0xFD5C10{44, 4C, 54, 5C, 64, 6C, 74, 7C}
+#endif
 
 	/* clear VINITHI */
 	r = mmio_read_32(APU1_CONFIG_0);
@@ -285,9 +289,11 @@ WARN("%s: start, cpu_id(%d), t_cpu_id(%d)\n", __func__, cpu_id, t_cpu_id);
 	r |= (1 << cpu_id);
 	mmio_write_32(APU_PWRCTL, r);
 
+#if 0 /* RVBAR setting through APU is currently broken; value fixed in device tree */
 	/* program RVBAR */
 	mmio_write_32(APU_RVBAR_L_0 + (cpu_id << 3), zynqmp_sec_entry);
 	mmio_write_32(APU_RVBAR_H_0 + (cpu_id << 3), zynqmp_sec_entry >> 32);
+#endif
 
 	/* clear VINITHI */
 	r = mmio_read_32(APU_CONFIG_0);
@@ -300,9 +306,11 @@ WARN("%s: start, cpu_id(%d), t_cpu_id(%d)\n", __func__, cpu_id, t_cpu_id);
 	r |= (1 << t_cpu_id);
 	mmio_write_32(APU1_PWRCTL, r);
 
+#if 0 /* RVBAR setting through APU is currently broken; value fixed in device tree */
 	/* program RVBAR */
 	mmio_write_32(APU1_RVBAR_L_0 + (t_cpu_id << 3), zynqmp_sec_entry);
 	mmio_write_32(APU1_RVBAR_H_0 + (t_cpu_id << 3), zynqmp_sec_entry >> 32);
+#endif
 
 	/* clear VINITHI */
 	r = mmio_read_32(APU1_CONFIG_0);
