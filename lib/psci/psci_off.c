@@ -39,7 +39,7 @@
 #include "psci_private.h"
 
 #include <mmio.h>	// by DK
-#include "pm_client.h"
+//#include "pm_client.h"
 /******************************************************************************
  * Construct the psci_power_state to request power OFF at all power levels.
  ******************************************************************************/

@@ -62,7 +62,7 @@
 
 DEFINE_BAKERY_LOCK(pm_client_secure_lock);
 
-extern const struct pm_ipi apu_ipi;
+extern struct pm_ipi apu_ipi;
 
 static uint32_t suspend_mode = PM_SUSPEND_MODE_STD;
 
