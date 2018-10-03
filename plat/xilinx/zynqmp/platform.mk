@@ -79,7 +79,7 @@ PLAT_BL_COMMON_SOURCES	:=	lib/xlat_tables/xlat_tables_common.c		\
 				drivers/arm/gic/common/gic_common.c		\
 				drivers/console/aarch64/console.S		\
 				plat/arm/common/aarch64/arm_helpers.S		\
-				plat/arm/common/arm_cci.c			\
+				plat/arm/common/arm_ccn.c			\
 				plat/arm/common/arm_common.c			\
 				plat/common/aarch64/plat_common.c		\
 				drivers/arm/gic/v3/gicv3_main.c			\
@@ -100,7 +100,7 @@ else
 endif
 $(eval $(call add_define_val,ZYNQMP_CONSOLE,ZYNQMP_CONSOLE_ID_${ZYNQMP_CONSOLE}))
 
-BL31_SOURCES		+=	drivers/arm/cci/cci.c				\
+BL31_SOURCES		+=	drivers/arm/ccn/ccn.c				\
 				lib/cpus/aarch64/aem_generic.S			\
 				lib/cpus/aarch64/cortex_a53.S			\
 				plat/common/plat_psci_common.c			\

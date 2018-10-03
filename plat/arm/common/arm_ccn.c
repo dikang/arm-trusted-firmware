@@ -33,6 +33,7 @@
 #include <plat_arm.h>
 #include <platform_def.h>
 
+#ifdef CCN_IMPLEMENTED
 static const unsigned char master_to_rn_id_map[] = {
 	PLAT_ARM_CLUSTER_TO_CCN_ID_MAP
 };
@@ -45,6 +46,7 @@ static const ccn_desc_t arm_ccn_desc = {
 
 CASSERT(PLAT_ARM_CLUSTER_COUNT == ARRAY_SIZE(master_to_rn_id_map),
 		assert_invalid_cluster_count_for_ccn_variant);
+#endif
 
 /******************************************************************************
  * The following functions are defined as weak to allow a platform to override
@@ -60,7 +62,9 @@ CASSERT(PLAT_ARM_CLUSTER_COUNT == ARRAY_SIZE(master_to_rn_id_map),
  *****************************************************************************/
 void plat_arm_interconnect_init(void)
 {
+#ifdef CCN_IMPLEMENTED
 	ccn_init(&arm_ccn_desc);
+#endif
 }
 
 /******************************************************************************
@@ -68,7 +72,9 @@ void plat_arm_interconnect_init(void)
  *****************************************************************************/
 void plat_arm_interconnect_enter_coherency(void)
 {
+#ifdef CCN_IMPLEMENTED
 	ccn_enter_snoop_dvm_domain(1 << MPIDR_AFFLVL1_VAL(read_mpidr_el1()));
+#endif
 }
 
 /******************************************************************************
@@ -76,5 +82,7 @@ void plat_arm_interconnect_enter_coherency(void)
  *****************************************************************************/
 void plat_arm_interconnect_exit_coherency(void)
 {
+#ifdef CCN_IMPLEMENTED
 	ccn_exit_snoop_dvm_domain(1 << MPIDR_AFFLVL1_VAL(read_mpidr_el1()));
+#endif
 }

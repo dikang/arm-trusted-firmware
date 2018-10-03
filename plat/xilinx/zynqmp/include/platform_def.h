@@ -49,6 +49,8 @@
 #define HPSC_CLUSTER0_CORE_COUNT 4
 #define HPSC_CLUSTER1_CORE_COUNT 4
 
+#define PLAT_ARM_CLUSTER_COUNT		HPSC_CLUSTER_COUNT
+
 #define PLATFORM_CORE_COUNT		(HPSC_CLUSTER0_CORE_COUNT + HPSC_CLUSTER1_CORE_COUNT)
 #define PLAT_NUM_PWR_DOMAINS		(HPSC_PWR_DOMAINS_AT_MAX_PWR_LVL + HPSC_CLUSTER_COUNT + PLATFORM_CORE_COUNT )
 #define PLAT_MAX_PWR_LVL		2
@@ -72,7 +74,7 @@
  * little space for growth.
  */
 #ifndef ZYNQMP_ATF_MEM_BASE
-# define BL31_BASE			0xfffea000
+# define BL31_BASE			0xfffda000
 # define BL31_LIMIT			0xffffffff
 #else
 # define BL31_BASE			(ZYNQMP_ATF_MEM_BASE)
@@ -177,6 +179,10 @@
 
 #define PLAT_ARM_G0_IRQS
 #endif
+
+#define PLAT_ARM_CCN_BASE		0xE1000000
+#define PLAT_ARM_CLUSTER_TO_CCN_ID_MAP	0, 1 // TODO: this needs to be checked
+// #define CCN_IMPLEMENTED // TODO: Implement the model (because ATF reads system config info) */
 
 #ifdef HPSC
 #undef HPSC
